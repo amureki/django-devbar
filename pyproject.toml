@@ -1,0 +1,52 @@
+[project]
+name = "django-devbar"
+version = "0.1.0"
+description = "Lightweight performance devbar for Django"
+readme = "README.md"
+license = "MIT"
+authors = [
+  { name = "amureki", email = "oss@amureki.com" },
+]
+requires-python = ">=3.10"
+dependencies = ["django>=4.2"]
+keywords = ["django", "debug", "performance", "monitoring", "development"]
+classifiers = [
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Framework :: Django",
+  "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
+  "Framework :: Django :: 5.1",
+  "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
+  "Topic :: Software Development",
+  "Intended Audience :: Developers",
+]
+
+[project.urls]
+Homepage = "https://github.com/amureki/django-devbar"
+Repository = "https://github.com/amureki/django-devbar"
+Issues = "https://github.com/amureki/django-devbar/issues"
+
+[build-system]
+requires = ["uv_build>=0.9.16,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-django",
+  "ruff",
+]
+
+[tool.pytest]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+norecursedirs = [".venv", ".git"]
+DJANGO_SETTINGS_MODULE = "tests.settings"
