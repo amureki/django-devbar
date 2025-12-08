@@ -1,6 +1,6 @@
 [project]
 name = "django-devbar"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lightweight performance devbar for Django"
 readme = "README.md"
 license = "MIT"
