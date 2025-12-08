@@ -10,10 +10,11 @@ Lightweight performance devbar for Django. Shows DB query count, query duration,
 pip install django-devbar
 ```
 
-Add to your middleware:
+Add to your middleware as early as possible, but after any middleware that encodes the response (e.g., `GZipMiddleware`):
 
 ```python
 MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
     "django_devbar.DevBarMiddleware",
     # ...
 ]
@@ -34,9 +35,17 @@ DEVBAR_SHOW_HEADERS = True
 
 ## Response Headers
 
-When `DEVBAR_SHOW_HEADERS = True`:
+When `DEVBAR_SHOW_HEADERS = True`, performance metrics are added as HTTP response headers. This is useful for:
 
-- `X-DevBar-Query-Count` - Number of DB queries
-- `X-DevBar-Query-Duration` - Total DB time in ms
-- `X-DevBar-Response-Time` - Total response time in ms
-- `X-DevBar-Duplicates` - Present if duplicate queries detected
+- **API endpoints** where the HTML overlay can't be displayed
+- **Automated testing** to assert performance thresholds (e.g., fail CI if query count exceeds a limit)
+- **Monitoring tools** that can capture and aggregate header values
+
+Headers included:
+
+| Header | Description |
+|--------|-------------|
+| `X-DevBar-Query-Count` | Number of database queries executed |
+| `X-DevBar-Query-Duration` | Total time spent in database queries (ms) |
+| `X-DevBar-Response-Time` | Total request-response cycle time (ms) |
+| `X-DevBar-Has-Duplicates` | Present (value `1`) if duplicate queries detected |

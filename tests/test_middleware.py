@@ -1,6 +1,7 @@
 from django.http import HttpResponse, StreamingHttpResponse
 
 from django_devbar.middleware import DevBarMiddleware
+from django_devbar import tracker
 
 
 class TestMiddleware:
@@ -123,6 +124,7 @@ class TestMiddleware:
         assert "X-DevBar-Query-Count" in response
         assert "X-DevBar-Query-Duration" in response
         assert "X-DevBar-Response-Time" in response
+        assert "X-DevBar-Has-Duplicates" not in response
 
     def test_headers_hidden_when_disabled(self, rf, settings):
         settings.DEVBAR_SHOW_HEADERS = False
@@ -139,3 +141,22 @@ class TestMiddleware:
         assert "X-DevBar-Query-Count" not in response
         assert "X-DevBar-Query-Duration" not in response
         assert "X-DevBar-Response-Time" not in response
+        assert "X-DevBar-Has-Duplicates" not in response
+
+    def test_has_duplicates_header_present_when_duplicates(self, rf, monkeypatch):
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {"count": 2, "duration": 10.0, "has_duplicates": True},
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        assert response["X-DevBar-Has-Duplicates"] == "1"

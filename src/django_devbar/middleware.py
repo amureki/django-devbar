@@ -58,7 +58,7 @@ class DevBarMiddleware:
         response["X-DevBar-Query-Duration"] = f"{stats['duration']:.1f}"
         response["X-DevBar-Response-Time"] = f"{response_time:.1f}"
         if stats["has_duplicates"]:
-            response["X-DevBar-Duplicates"] = "1"
+            response["X-DevBar-Has-Duplicates"] = "1"
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):
