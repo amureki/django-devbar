@@ -2,7 +2,7 @@
 
 Lightweight performance devbar for Django. Shows DB query count, query duration, and response time.
 
-![devbar example](docs/devbar-example.svg)
+![devbar example](https://raw.githubusercontent.com/amureki/django-devbar/main/docs/devbar-example.svg)
 
 ## Installation
 
