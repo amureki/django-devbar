@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="22" viewBox="0 0 180 22">
+  <rect x="0" y="0" width="180" height="22" rx="3" ry="3" fill="rgba(0,0,0,0.85)"/>
+  <text x="8" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" letter-spacing="0.02em">
+    <tspan fill="rgba(255,255,255,0.5)">queries</tspan>
+    <tspan fill="rgba(255,255,255,0.85)"> 12 </tspan>
+    <tspan fill="rgba(255,255,255,0.5)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.5)"> db</tspan>
+    <tspan fill="rgba(255,255,255,0.85)"> 4ms </tspan>
+    <tspan fill="rgba(255,255,255,0.5)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.5)"> total</tspan>
+    <tspan fill="rgba(255,255,255,0.85)"> 32ms</tspan>
+  </text>
+</svg>
