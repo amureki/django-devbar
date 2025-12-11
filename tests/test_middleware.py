@@ -121,10 +121,10 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert "X-DevBar-Query-Count" in response
-        assert "X-DevBar-Query-Duration" in response
-        assert "X-DevBar-Response-Time" in response
-        assert "X-DevBar-Has-Duplicates" not in response
+        assert "DevBar-Query-Count" in response
+        assert "DevBar-DB-Time" in response
+        assert "DevBar-App-Time" in response
+        assert "DevBar-Duplicates" not in response
 
     def test_headers_hidden_when_disabled(self, rf, settings):
         settings.DEVBAR_SHOW_HEADERS = False
@@ -138,16 +138,24 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert "X-DevBar-Query-Count" not in response
-        assert "X-DevBar-Query-Duration" not in response
-        assert "X-DevBar-Response-Time" not in response
-        assert "X-DevBar-Has-Duplicates" not in response
+        assert "DevBar-Query-Count" not in response
+        assert "DevBar-DB-Time" not in response
+        assert "DevBar-App-Time" not in response
+        assert "DevBar-Duplicates" not in response
 
     def test_has_duplicates_header_present_when_duplicates(self, rf, monkeypatch):
         monkeypatch.setattr(
             tracker,
             "get_stats",
-            lambda: {"count": 2, "duration": 10.0, "has_duplicates": True},
+            lambda: {
+                "count": 3,
+                "duration": 10.0,
+                "has_duplicates": True,
+                "duplicate_queries": [
+                    {"sql": "SELECT * FROM foo", "params": "(1,)", "duration": 5.0},
+                    {"sql": "SELECT * FROM bar", "params": "(2,)", "duration": 3.0},
+                ],
+            },
         )
 
         def get_response(request):
@@ -159,4 +167,4 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert response["X-DevBar-Has-Duplicates"] == "1"
+        assert response["DevBar-Duplicates"] == "2"
