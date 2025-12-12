@@ -17,9 +17,10 @@ from .conf import (
 STYLE_BLOCK = """<style>
 #django-devbar {
     position: fixed; %s; z-index: 999999999;
+    display: flex; align-items: center; gap: 4px;
     font-family: -apple-system, system-ui, sans-serif;
     font-size: 11px; font-weight: 500;
-    padding: 4px 8px; border-radius: 4px;
+    padding: 4px 8px; margin: 8px; border-radius: 4px;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.2s ease;
@@ -30,14 +31,14 @@ STYLE_BLOCK = """<style>
 }
 #django-devbar.level-warn { border-left: 3px solid #f59e0b; }
 #django-devbar.level-crit { border-left: 3px solid #dc2626; }
-#django-devbar span { opacity: 0.7; margin-right: 2px; }
-#django-devbar strong { opacity: 1; font-weight: 600; margin-right: 6px; }
+#django-devbar span { opacity: 0.7; }
+#django-devbar strong { opacity: 1; font-weight: 600; }
 </style>"""
 
 BAR_TEMPLATE = """<div id="django-devbar" class="level-%s">
-<span>db</span> <strong>%.0fms</strong>
-<span>py</span> <strong>%.0fms</strong>
-<span>count</span> <strong>%d</strong>%s
+<span>db</span> <strong>%.0fms</strong> <span>·</span>
+<span>app</span> <strong>%.0fms</strong> <span>·</span>
+<span>queries</span> <strong>%d</strong>%s
 </div>"""
 
 SCRIPT_TEMPLATE = """<script>
@@ -127,7 +128,7 @@ class DevBarMiddleware:
             return
 
         dup_marker = (
-            ' <strong style="color:#f59e0b">(D)</strong>'
+            ' <strong style="color:#f59e0b">(d)</strong>'
             if stats["has_duplicates"]
             else ""
         )
