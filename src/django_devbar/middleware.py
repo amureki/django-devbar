@@ -16,7 +16,7 @@ from .conf import (
 
 STYLE_BLOCK = """<style>
 #django-devbar {
-    position: fixed; %s; z-index: 99999;
+    position: fixed; %s; z-index: 999999999;
     font-family: -apple-system, system-ui, sans-serif;
     font-size: 11px; font-weight: 500;
     padding: 4px 8px; border-radius: 4px;
