@@ -1,13 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="180" height="22" viewBox="0 0 180 22">
-  <rect x="0" y="0" width="180" height="22" rx="3" ry="3" fill="rgba(0,0,0,0.85)"/>
-  <text x="8" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" letter-spacing="0.02em">
-    <tspan fill="rgba(255,255,255,0.5)">queries</tspan>
-    <tspan fill="rgba(255,255,255,0.85)"> 12 </tspan>
-    <tspan fill="rgba(255,255,255,0.5)">·</tspan>
-    <tspan fill="rgba(255,255,255,0.5)"> db</tspan>
-    <tspan fill="rgba(255,255,255,0.85)"> 4ms </tspan>
-    <tspan fill="rgba(255,255,255,0.5)">·</tspan>
-    <tspan fill="rgba(255,255,255,0.5)"> total</tspan>
-    <tspan fill="rgba(255,255,255,0.85)"> 32ms</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" width="190" height="22" viewBox="0 0 190 22">
+  <rect x="0" y="0" width="190" height="22" rx="4" ry="4" fill="rgba(20,20,20,0.92)"/>
+  <text x="8" y="15" font-family="-apple-system, system-ui, sans-serif" font-size="11" font-weight="500" letter-spacing="0.02em">
+    <tspan fill="rgba(255,255,255,0.7)">db</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 4ms </tspan>
+    <tspan fill="rgba(255,255,255,0.7)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.7)"> app</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 28ms </tspan>
+    <tspan fill="rgba(255,255,255,0.7)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.7)"> queries</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 12</tspan>
   </text>
 </svg>

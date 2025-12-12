@@ -2,7 +2,9 @@
 
 Lightweight performance devbar for Django. Shows DB query count, query duration, application time, and detects duplicate queries with visual severity indicators.
 
-![devbar example](https://raw.githubusercontent.com/amureki/django-devbar/main/docs/devbar-example.svg)
+![devbar example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example.svg)
+
+![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
 ## Installation
 

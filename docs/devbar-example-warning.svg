@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="22" viewBox="0 0 210 22">
+  <rect x="0" y="0" width="210" height="22" rx="4" ry="4" fill="rgba(20,20,20,0.92)"/>
+  <rect x="0" y="0" width="3" height="22" rx="4" ry="4" fill="#f59e0b"/>
+  <text x="11" y="15" font-family="-apple-system, system-ui, sans-serif" font-size="11" font-weight="500" letter-spacing="0.02em">
+    <tspan fill="rgba(255,255,255,0.7)">db</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 4ms </tspan>
+    <tspan fill="rgba(255,255,255,0.7)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.7)"> app</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 28ms </tspan>
+    <tspan fill="rgba(255,255,255,0.7)">·</tspan>
+    <tspan fill="rgba(255,255,255,0.7)"> queries</tspan>
+    <tspan fill="rgba(255,255,255,1)" font-weight="600"> 12 </tspan>
+    <tspan fill="#f59e0b" font-weight="600">(d)</tspan>
+  </text>
+</svg>
