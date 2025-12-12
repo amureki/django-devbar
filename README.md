@@ -9,6 +9,10 @@ Lightweight performance devbar for Django. Shows DB query count, query duration,
 ## Installation
 
 ```bash
+# Using uv (recommended)
+uv add --dev django-devbar
+
+# Or using pip
 pip install django-devbar
 ```
 
