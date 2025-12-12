@@ -17,22 +17,24 @@ from .conf import (
 STYLE_BLOCK = """<style>
 #django-devbar {
     position: fixed; %s; z-index: 999999999;
-    display: flex; align-items: center; gap: 4px;
+    display: flex; align-items: center; gap: 5px;
     font-family: -apple-system, system-ui, sans-serif;
     font-size: 11px; font-weight: 500;
     padding: 4px 8px; margin: 8px; border-radius: 4px;
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
     transition: all 0.2s ease;
     cursor: default;
     line-height: 1.3;
-    background: rgba(20, 20, 20, 0.85);
-    color: #e5e5e5;
+    background: rgba(20, 20, 20, 0.92);
+    color: #f5f5f5;
 }
 #django-devbar.level-warn { border-left: 3px solid #f59e0b; }
 #django-devbar.level-crit { border-left: 3px solid #dc2626; }
 #django-devbar span { opacity: 0.7; }
 #django-devbar strong { opacity: 1; font-weight: 600; }
+#django-devbar .duplicate-badge { color: #f59e0b; font-weight: 600; }
+@media (max-width: 640px) { #django-devbar { display: none; } }
 </style>"""
 
 BAR_TEMPLATE = """<div id="django-devbar" class="level-%s">
@@ -128,7 +130,7 @@ class DevBarMiddleware:
             return
 
         dup_marker = (
-            ' <strong style="color:#f59e0b">(d)</strong>'
+            ' <strong class="duplicate-badge">(d)</strong>'
             if stats["has_duplicates"]
             else ""
         )
