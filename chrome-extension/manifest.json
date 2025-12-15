@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Django DevBar",
+  "version": "0.1.0",
+  "description": "Chrome DevTools panel for Django DevBar performance metrics",
+  "devtools_page": "devtools.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "webRequest"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}

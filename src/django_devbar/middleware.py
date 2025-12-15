@@ -8,9 +8,12 @@ from django.template import Context, Engine
 
 from . import tracker
 from .conf import (
+    get_enable_console,
+    get_extension_mode,
     get_position,
     get_show_bar,
     get_show_headers,
+    get_thresholds,
 )
 
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
@@ -61,6 +64,20 @@ class DevBarMiddleware:
         response["DevBar-App-Time"] = f"{stats['python_time']:.0f}ms"
         if stats["has_duplicates"]:
             response["DevBar-Duplicates"] = str(len(stats["duplicate_queries"]))
+
+        if get_extension_mode():
+            # Add comprehensive JSON data for Chrome extension
+            extension_data = {
+                "count": stats["count"],
+                "db_time": stats["duration"],
+                "app_time": stats["python_time"],
+                "total_time": stats["total_time"],
+                "has_duplicates": stats["has_duplicates"],
+            }
+            if stats.get("duplicate_queries"):
+                extension_data["duplicates"] = stats["duplicate_queries"]
+
+            response["DevBar-Data"] = json.dumps(extension_data)
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):

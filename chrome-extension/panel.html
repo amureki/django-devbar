@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Django DevBar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      color: #333;
+      background: #f5f5f5;
+      padding: 16px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #666;
+    }
+
+    .empty-state h2 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .request-card {
+      background: white;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .request-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .request-url {
+      font-weight: 500;
+      color: #1a73e8;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 600px;
+    }
+
+    .request-method {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 500;
+      font-size: 11px;
+      margin-right: 8px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .metric-unit {
+      font-size: 12px;
+      font-weight: 400;
+      color: #999;
+      margin-left: 2px;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border-left: 3px solid #f59e0b;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #856404;
+    }
+
+    .duplicates-section {
+      margin-top: 12px;
+    }
+
+    .duplicates-header {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #f59e0b;
+      font-size: 12px;
+    }
+
+    .duplicate-query {
+      background: #fffbf0;
+      border: 1px solid #fee;
+      border-radius: 4px;
+      padding: 8px;
+      margin-bottom: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+    }
+
+    .duplicate-sql {
+      color: #333;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .duplicate-params {
+      color: #666;
+      font-size: 10px;
+    }
+
+    .duplicate-duration {
+      color: #f59e0b;
+      font-weight: 500;
+      font-size: 10px;
+    }
+
+    .history-section {
+      margin-top: 24px;
+    }
+
+    .history-header {
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .history-item {
+      background: white;
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .history-item:hover {
+      background: #f8f9fa;
+    }
+
+    .history-url {
+      font-size: 12px;
+      color: #1a73e8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 500px;
+    }
+
+    .history-stats {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .code {
+      font-family: 'Courier New', monospace;
+      background: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="empty-state">
+      <h2>Django DevBar</h2>
+      <p>Navigate to a page with Django DevBar enabled to see performance metrics.</p>
+      <p style="margin-top: 8px; font-size: 11px;">Make sure <span class="code">DEVBAR_EXTENSION_MODE = True</span> is set in your Django settings.</p>
+    </div>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>

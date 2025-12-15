@@ -168,3 +168,53 @@ class TestMiddleware:
         response = middleware(request)
 
         assert response["DevBar-Duplicates"] == "2"
+
+    def test_extension_mode_adds_json_header(self, rf, settings, monkeypatch):
+        settings.DEVBAR_EXTENSION_MODE = True
+        settings.DEVBAR_SHOW_HEADERS = True
+
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 5,
+                "duration": 20.5,
+                "has_duplicates": True,
+                "duplicate_queries": [
+                    {"sql": "SELECT * FROM foo", "params": "(1,)", "duration": 5.0}
+                ],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        assert "DevBar-Data" in response
+        import json
+
+        data = json.loads(response["DevBar-Data"])
+        assert data["count"] == 5
+        assert data["db_time"] == 20.5
+        assert data["has_duplicates"] is True
+        assert len(data["duplicates"]) == 1
+
+    def test_extension_mode_disabled_no_json_header(self, rf, settings):
+        settings.DEVBAR_EXTENSION_MODE = False
+        settings.DEVBAR_SHOW_HEADERS = True
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        assert "DevBar-Data" not in response
