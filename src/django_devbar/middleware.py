@@ -1,3 +1,4 @@
+import json
 import re
 from contextlib import ExitStack
 from pathlib import Path
@@ -50,7 +51,7 @@ class DevBarMiddleware:
 
         level = "warn" if stats["has_duplicates"] else "ok"
 
-        if get_show_headers():
+        if get_show_headers() or get_extension_mode():
             self._add_headers(response, stats)
 
         if get_show_bar() and self._can_inject(response):
