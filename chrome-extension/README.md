@@ -11,12 +11,13 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
 
 ## Installation (Development Mode)
 
-1. **Enable Extension Mode in Django**
+1. **Enable Headers in Django**
 
    Add to your Django `settings.py`:
    ```python
-   DEVBAR_EXTENSION_MODE = True
-   DEVBAR_SHOW_HEADERS = True  # Required for the extension to work
+   DEVBAR = {
+       'SHOW_HEADERS': True,  # Required for the extension to work
+   }
    ```
 
 2. **Load the Extension in Chrome**
@@ -46,20 +47,16 @@ MIDDLEWARE = [
     'django_devbar.middleware.DevBarMiddleware',
 ]
 
-# Enable extension mode to get detailed JSON data
-DEVBAR_EXTENSION_MODE = True
-
-# Enable headers (required for the extension)
-DEVBAR_SHOW_HEADERS = True
-
-# Optional: Keep the HTML overlay as well
-DEVBAR_SHOW_BAR = True  # Default: same as DEBUG
+DEVBAR = {
+    'SHOW_HEADERS': True,  # Required for the extension (includes DevBar-Data JSON)
+    'SHOW_BAR': True,      # Optional: Keep the HTML overlay as well (default: DEBUG)
+}
 ```
 
 ## Troubleshooting
 
 **No data appearing in the panel?**
-- Ensure `DEVBAR_EXTENSION_MODE = True` and `DEVBAR_SHOW_HEADERS = True` are set
+- Ensure `DEVBAR = {'SHOW_HEADERS': True}` is set
 - Check that the Django DevBar middleware is installed and enabled
 - Verify the request returns HTML or includes DevBar headers (check Network tab)
 - Make sure you're viewing a Django page with DevBar enabled

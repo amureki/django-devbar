@@ -127,7 +127,7 @@ class TestMiddleware:
         assert "DevBar-Duplicates" not in response
 
     def test_headers_hidden_when_disabled(self, rf, settings):
-        settings.DEVBAR = {"SHOW_HEADERS": False}
+        settings.DEVBAR = {"SHOW_HEADERS": False, "DEVTOOLS_MODE": False}
 
         def get_response(request):
             return HttpResponse(
@@ -203,18 +203,3 @@ class TestMiddleware:
         assert data["db_time"] == 20.5
         assert data["has_duplicates"] is True
         assert len(data["duplicates"]) == 1
-
-    def test_extension_mode_disabled_no_json_header(self, rf, settings):
-        settings.DEVBAR_EXTENSION_MODE = False
-        settings.DEVBAR_SHOW_HEADERS = True
-
-        def get_response(request):
-            return HttpResponse(
-                "<html><body>Test</body></html>", content_type="text/html"
-            )
-
-        middleware = DevBarMiddleware(get_response)
-        request = rf.get("/")
-        response = middleware(request)
-
-        assert "DevBar-Data" not in response

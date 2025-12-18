@@ -13,8 +13,6 @@ def get_config():
         "POSITION": "bottom-right",
         "SHOW_BAR": None,  # None = use settings.DEBUG
         "SHOW_HEADERS": False,
-        "ENABLE_CONSOLE": True,
-        "EXTENSION_MODE": True,
         **getattr(settings, "DEVBAR", {}),
     }
 
@@ -33,11 +31,3 @@ def get_show_bar():
 
 def get_show_headers():
     return get_config()["SHOW_HEADERS"]
-
-
-def get_enable_console():
-    return get_config()["ENABLE_CONSOLE"]
-
-
-def get_extension_mode():
-    return get_config()["EXTENSION_MODE"]

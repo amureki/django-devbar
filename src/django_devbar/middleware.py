@@ -9,8 +9,6 @@ from django.template import Context, Engine
 
 from . import tracker
 from .conf import (
-    get_enable_console,
-    get_extension_mode,
     get_position,
     get_show_bar,
     get_show_headers,
@@ -50,7 +48,7 @@ class DevBarMiddleware:
 
         level = "warn" if stats["has_duplicates"] else "ok"
 
-        if get_show_headers() or get_extension_mode():
+        if get_show_headers():
             self._add_headers(response, stats)
 
         if get_show_bar() and self._can_inject(response):
@@ -65,19 +63,18 @@ class DevBarMiddleware:
         if stats["has_duplicates"]:
             response["DevBar-Duplicates"] = str(len(stats["duplicate_queries"]))
 
-        if get_extension_mode():
-            # Add comprehensive JSON data for Chrome extension
-            extension_data = {
-                "count": stats["count"],
-                "db_time": stats["duration"],
-                "app_time": stats["python_time"],
-                "total_time": stats["total_time"],
-                "has_duplicates": stats["has_duplicates"],
-            }
-            if stats.get("duplicate_queries"):
-                extension_data["duplicates"] = stats["duplicate_queries"]
+        # Add comprehensive JSON data for browser DevTools extension
+        extension_data = {
+            "count": stats["count"],
+            "db_time": stats["duration"],
+            "app_time": stats["python_time"],
+            "total_time": stats["total_time"],
+            "has_duplicates": stats["has_duplicates"],
+        }
+        if stats.get("duplicate_queries"):
+            extension_data["duplicates"] = stats["duplicate_queries"]
 
-            response["DevBar-Data"] = json.dumps(extension_data)
+        response["DevBar-Data"] = json.dumps(extension_data)
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):
@@ -95,7 +92,9 @@ class DevBarMiddleware:
         if not matches:
             return
 
-        duplicates_html = self._build_duplicates_html(stats.get("duplicate_queries", []))
+        duplicates_html = self._build_duplicates_html(
+            stats.get("duplicate_queries", [])
+        )
 
         template = _template_engine.get_template("django_devbar/devbar.html")
         html = template.render(
@@ -120,15 +119,5 @@ class DevBarMiddleware:
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
-        from html import escape
-
-        items = "".join(
-            f'<details><summary><code>{escape(d["sql"][:70])}'
-            f'{"..." if len(d["sql"]) > 70 else ""}</code></summary>'
-            f'<code>{escape(d["sql"])}</code></details>'
-            for d in duplicates
-        )
-        return (
-            f' <details><summary>({len(duplicates)}d)</summary>'
-            f'<div class="dup-list">{items}</div></details>'
-        )
+        template = _template_engine.get_template("django_devbar/duplicates.html")
+        return template.render(Context({"duplicates": duplicates}))
