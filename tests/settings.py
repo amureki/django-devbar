@@ -1,2 +1,4 @@
-DEVBAR_SHOW_BAR = True
-DEVBAR_SHOW_HEADERS = True
+DEVBAR = {
+    "SHOW_BAR": True,
+    "SHOW_HEADERS": True,
+}
