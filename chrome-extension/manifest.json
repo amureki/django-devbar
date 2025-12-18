@@ -9,10 +9,5 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": [
-    "webRequest"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ]
+  "permissions": []
 }
