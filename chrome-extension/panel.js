@@ -2,7 +2,6 @@
   'use strict';
 
   const MAX_HISTORY = 50;
-  const DISPLAY_LIMIT = 10;
 
   let requestHistory = [];
   let currentRequest = null;
@@ -40,11 +39,6 @@
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-  }
-
-  function showRequest(index) {
-    currentRequest = requestHistory[index];
-    renderUI();
   }
 
   function parseDevBarHeaders(headers) {
@@ -164,7 +158,6 @@
         <div class="metrics">
           ${renderMetric('DB', formatMs(data.db_time), 'ms')}
           ${renderMetric('App', formatMs(data.app_time), 'ms')}
-          ${renderMetric('Total', formatMs(data.total_time), 'ms')}
           ${renderMetric('Queries', data.count ?? 0)}
           ${data.has_duplicates ? `<span class="dup-warn">⚠ ${data.duplicates?.length || ''} dup</span>` : ''}
         </div>
@@ -182,18 +175,19 @@
 
     if (otherRequests.length > 0) {
       html += `<div class="history"><div class="history-title">Other (${otherRequests.length})</div>
-        ${otherRequests.slice(0, DISPLAY_LIMIT).map(req => {
+        ${otherRequests.map(req => {
           const t = getRequestType(req);
-          return `<div class="hist-row" data-index="${requestHistory.indexOf(req)}">
+          return `<div class="hist-row">
             <div class="hist-left">
               <span class="request-type ${t.class}">${t.label}</span>
               <span class="request-method">${escapeHtml(req.method)}</span>
               <span class="hist-url" title="${escapeHtml(req.url)}">${escapeHtml(req.url)}</span>
             </div>
             <div class="hist-stats">
-              <span>DB: ${formatMs(req.data.db_time)}ms</span>
-              <span>Queries: ${req.data.count ?? 0}</span>
-              <span>${formatTime(req.timestamp)}</span>
+              ${renderMetric('DB', formatMs(req.data.db_time), 'ms')}
+              ${renderMetric('App', formatMs(req.data.app_time), 'ms')}
+              ${renderMetric('Queries', req.data.count ?? 0)}
+              ${req.data.has_duplicates ? `<span class="dup-warn">⚠</span>` : ''}
             </div>
           </div>`;
         }).join('')}
@@ -203,12 +197,6 @@
     app.innerHTML = html;
   }
 
-  document.getElementById('app').addEventListener('click', (e) => {
-    const row = e.target.closest('.hist-row');
-    if (row?.dataset.index != null) {
-      showRequest(parseInt(row.dataset.index, 10));
-    }
-  });
 
   function processHarLog(harLog) {
     console.log('[DevBar] Processing HAR, entries:', harLog?.entries?.length || 0, 'pageUrl:', pageUrl);
