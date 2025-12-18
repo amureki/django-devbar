@@ -78,7 +78,9 @@ class DevBarMiddleware:
         if not matches:
             return
 
-        duplicates_html = self._build_duplicates_html(stats.get("duplicate_queries", []))
+        duplicates_html = self._build_duplicates_html(
+            stats.get("duplicate_queries", [])
+        )
 
         template = _template_engine.get_template("django_devbar/devbar.html")
         html = template.render(
