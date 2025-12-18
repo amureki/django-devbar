@@ -30,20 +30,19 @@ MIDDLEWARE = [
 
 ## Configuration
 
+All settings are optional. Configure via a `DEVBAR` dict in your Django settings:
+
 ```python
-# Position: bottom-right, bottom-left, top-right, top-left (default: bottom-right)
-DEVBAR_POSITION = "top-left"
-
-# Show HTML overlay (default: DEBUG)
-DEVBAR_SHOW_BAR = True
-
-# Add DevBar-* response headers (default: False)
-DEVBAR_SHOW_HEADERS = True
+DEVBAR = {
+    'POSITION': 'bottom-right',  # bottom-right, bottom-left, top-right, top-left
+    'SHOW_BAR': None,            # None (default) = follows DEBUG, or True/False to override
+    'SHOW_HEADERS': False,       # Add X-DevBar-* headers to responses
+}
 ```
 
 ## Response Headers
 
-When `DEVBAR_SHOW_HEADERS = True`, performance metrics are added as HTTP response headers. This is useful for:
+When `DEVBAR = {'SHOW_HEADERS': True}`, performance metrics are added as HTTP response headers. This is useful for:
 
 - **API endpoints** where the HTML overlay can't be displayed
 - **Automated testing** to assert performance metrics (e.g., fail CI if query count exceeds a limit)

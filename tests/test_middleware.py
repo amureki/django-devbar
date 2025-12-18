@@ -55,7 +55,7 @@ class TestMiddleware:
         assert b"django-devbar" not in response.content
 
     def test_position_setting(self, rf, settings):
-        settings.DEVBAR_POSITION = "top-left"
+        settings.DEVBAR = {"POSITION": "top-left", "SHOW_BAR": True}
 
         def get_response(request):
             return HttpResponse(
@@ -98,7 +98,7 @@ class TestMiddleware:
         assert devbar_idx > first_body_idx
 
     def test_devbar_hidden_when_disabled(self, rf, settings):
-        settings.DEVBAR_SHOW_BAR = False
+        settings.DEVBAR = {"SHOW_BAR": False}
 
         def get_response(request):
             return HttpResponse(
@@ -127,7 +127,7 @@ class TestMiddleware:
         assert "DevBar-Duplicates" not in response
 
     def test_headers_hidden_when_disabled(self, rf, settings):
-        settings.DEVBAR_SHOW_HEADERS = False
+        settings.DEVBAR = {"SHOW_HEADERS": False}
 
         def get_response(request):
             return HttpResponse(

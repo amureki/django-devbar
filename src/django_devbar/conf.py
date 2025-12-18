@@ -8,14 +8,26 @@ POSITIONS = {
 }
 
 
+def get_config():
+    return {
+        "POSITION": "bottom-right",
+        "SHOW_BAR": None,  # None = use settings.DEBUG
+        "SHOW_HEADERS": False,
+        **getattr(settings, "DEVBAR", {}),
+    }
+
+
 def get_position():
-    key = getattr(settings, "DEVBAR_POSITION", "bottom-right")
+    config = get_config()
+    key = config["POSITION"]
     return POSITIONS.get(key, POSITIONS["bottom-right"])
 
 
 def get_show_bar():
-    return getattr(settings, "DEVBAR_SHOW_BAR", settings.DEBUG)
+    config = get_config()
+    show_bar = config["SHOW_BAR"]
+    return settings.DEBUG if show_bar is None else show_bar
 
 
 def get_show_headers():
-    return getattr(settings, "DEVBAR_SHOW_HEADERS", False)
+    return get_config()["SHOW_HEADERS"]
