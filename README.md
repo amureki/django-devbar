@@ -36,7 +36,9 @@ All settings are optional. Configure via a `DEVBAR` dict in your Django settings
 DEVBAR = {
     'POSITION': 'bottom-right',  # bottom-right, bottom-left, top-right, top-left
     'SHOW_BAR': None,            # None (default) = follows DEBUG, or True/False to override
-    'SHOW_HEADERS': False,       # Add X-DevBar-* headers to responses
+    'SHOW_HEADERS': False,       # Add DevBar-* headers to responses
+    'ENABLE_CONSOLE': True,      # Enable console logging for duplicate queries
+    'EXTENSION_MODE': True,      # Add DevBar-Data header for browser extension
 }
 ```
 

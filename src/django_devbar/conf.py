@@ -7,13 +7,6 @@ POSITIONS = {
     "top-left": "top:0;left:0",
 }
 
-DEFAULT_THRESHOLDS = {
-    "time_warning": 500,
-    "time_critical": 1500,
-    "count_warning": 20,
-    "count_critical": 50,
-}
-
 
 def get_config():
     return {
@@ -22,7 +15,6 @@ def get_config():
         "SHOW_HEADERS": False,
         "ENABLE_CONSOLE": True,
         "EXTENSION_MODE": True,
-        "THRESHOLDS": {},
         **getattr(settings, "DEVBAR", {}),
     }
 
@@ -49,11 +41,3 @@ def get_enable_console():
 
 def get_extension_mode():
     return get_config()["EXTENSION_MODE"]
-
-
-def get_thresholds():
-    config = get_config()
-    user_thresholds = config["THRESHOLDS"]
-    final = DEFAULT_THRESHOLDS.copy()
-    final.update(user_thresholds)
-    return final

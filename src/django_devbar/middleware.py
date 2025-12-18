@@ -14,7 +14,6 @@ from .conf import (
     get_position,
     get_show_bar,
     get_show_headers,
-    get_thresholds,
 )
 
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
