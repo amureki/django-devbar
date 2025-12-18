@@ -1,0 +1,1 @@
+{% if duplicates %}<details><summary>({{ duplicates|length }}d)</summary><div class="dup-list">{% for dup in duplicates %}<details><summary><code>{{ dup.sql }}</code></summary><code>{{ dup.sql }}</code></details>{% endfor %}</div></details>{% endif %}
