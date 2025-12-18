@@ -13,7 +13,6 @@
     if (error || !result) return;
     pageUrl = result;
     pageUrlReady = true;
-    console.log('[DevBar] Page URL:', pageUrl);
 
     if (pendingHarLog) {
       processHarLog(pendingHarLog);
@@ -22,7 +21,6 @@
   });
 
   chrome.devtools.network.onNavigated.addListener((url) => {
-    console.log('[DevBar] Page navigated to:', url);
     pageUrl = url;
     requestHistory = [];
     currentRequest = null;
@@ -96,8 +94,6 @@
 
     const isDocument = isDocumentRequest(request);
     const isMainPage = isMainPageRequest(request.request.url);
-
-    console.log('[DevBar] processRequest:', request.request.url, 'isDocument:', isDocument, 'isMainPage:', isMainPage);
 
     const requestData = {
       url: request.request.url,
@@ -199,23 +195,19 @@
 
 
   function processHarLog(harLog) {
-    console.log('[DevBar] Processing HAR, entries:', harLog?.entries?.length || 0, 'pageUrl:', pageUrl);
     if (!harLog?.entries) return;
 
     harLog.entries.forEach(entry => processRequest(entry, { skipRender: true }));
 
     const mainPageReq = requestHistory.find(r => r.isMainPage);
-    console.log('[DevBar] After HAR processing - history length:', requestHistory.length, 'mainPage found:', !!mainPageReq, 'url:', mainPageReq?.url);
 
     if (mainPageReq) {
       currentRequest = mainPageReq;
-      console.log('[DevBar] Set currentRequest to main page:', mainPageReq.url);
     } else {
       const docRequests = requestHistory.filter(r => r.isDocument);
       const oldestDoc = docRequests[docRequests.length - 1];
       if (oldestDoc) {
         currentRequest = oldestDoc;
-        console.log('[DevBar] Fallback: Set currentRequest to oldest document:', oldestDoc.url);
       }
     }
 
@@ -227,7 +219,6 @@
       processHarLog(harLog);
     } else {
       pendingHarLog = harLog;
-      console.log('[DevBar] HAR received, waiting for page URL...');
     }
   });
 
