@@ -1,0 +1,92 @@
+<style>
+#django-devbar {
+    position: fixed; {{ position }}; z-index: 999999999;
+    display: flex; align-items: center; gap: 5px;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 11px; font-weight: 500;
+    padding: 4px 8px; margin: 8px; border-radius: 4px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+    cursor: default;
+    line-height: 1.3;
+    background: rgba(20, 20, 20, 0.92);
+    color: #f5f5f5;
+}
+#django-devbar.level-warn { border-left: 3px solid #f59e0b; }
+#django-devbar span { opacity: 0.7; }
+#django-devbar strong { opacity: 1; font-weight: 600; }
+#django-devbar details { display: inline; position: relative; }
+#django-devbar summary {
+    all: revert;
+    color: #f59e0b; font-weight: 600; cursor: pointer; list-style: none;
+}
+#django-devbar summary::-webkit-details-marker { display: none; }
+#django-devbar details[open] > .dup-list {
+    position: absolute; bottom: 100%; right: -8px; margin-bottom: 8px;
+    background: rgba(20, 20, 20, 0.92); border-radius: 4px; padding: 6px;
+    width: min(500px, 90vw); max-height: 200px; overflow-y: auto; overflow-x: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
+}
+#django-devbar .dup-list details {
+    display: block;
+    margin: 0 0 6px 0;
+    font-size: 11px;
+    color: #f5f5f5;
+}
+#django-devbar .dup-list details:last-child { margin-bottom: 0; }
+#django-devbar .dup-list summary {
+    all: revert;
+    cursor: pointer;
+    list-style: none;
+    padding: 6px 8px;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 3px;
+    border-left: 2px solid #fbbf24;
+    transition: background 0.15s ease;
+}
+#django-devbar .dup-list summary:hover {
+    background: rgba(251, 191, 36, 0.2);
+}
+#django-devbar .dup-list summary code {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 420px;
+    vertical-align: bottom;
+}
+#django-devbar .dup-list summary::before {
+    content: '▶ ';
+    display: inline-block;
+    transition: transform 0.15s ease;
+    color: #fbbf24;
+    font-size: 8px;
+    margin-right: 6px;
+}
+#django-devbar .dup-list details[open] > summary::before {
+    transform: rotate(90deg);
+}
+#django-devbar .dup-list code {
+    all: revert;
+    color: #fbbf24; font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    overflow-wrap: break-word;
+}
+#django-devbar .dup-list details[open] > code {
+    display: block;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    margin-top: 6px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    font-size: 10px;
+}
+@media (max-width: 640px) { #django-devbar { display: none; } }
+</style>
+<div id="django-devbar" class="level-{{ level }}">
+<span>db</span> <strong>{{ db_time|floatformat:0 }}ms</strong> <span>·</span>
+<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong> <span>·</span>
+<span>queries</span> <strong>{{ query_count }}</strong>{{ duplicates_html|safe }}
+</div>

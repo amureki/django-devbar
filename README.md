@@ -37,17 +37,6 @@ DEVBAR_SHOW_BAR = True
 
 # Add DevBar-* response headers (default: False)
 DEVBAR_SHOW_HEADERS = True
-
-# Enable console logging for duplicate queries (default: True)
-DEVBAR_ENABLE_CONSOLE = True
-
-# Performance thresholds for warning/critical levels (defaults shown)
-DEVBAR_THRESHOLDS = {
-    "time_warning": 500,    # ms
-    "time_critical": 1500,  # ms
-    "count_warning": 20,    # queries
-    "count_critical": 50,   # queries
-}
 ```
 
 ## Response Headers
@@ -55,7 +44,7 @@ DEVBAR_THRESHOLDS = {
 When `DEVBAR_SHOW_HEADERS = True`, performance metrics are added as HTTP response headers. This is useful for:
 
 - **API endpoints** where the HTML overlay can't be displayed
-- **Automated testing** to assert performance thresholds (e.g., fail CI if query count exceeds a limit)
+- **Automated testing** to assert performance metrics (e.g., fail CI if query count exceeds a limit)
 - **Monitoring tools** that can capture and aggregate header values
 
 Headers included:

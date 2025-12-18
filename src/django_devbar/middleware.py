@@ -1,60 +1,24 @@
-import json
 import re
 from contextlib import ExitStack
+from pathlib import Path
 from time import perf_counter
 
 from django.db import connections
+from django.template import Context, Engine
 
 from . import tracker
 from .conf import (
     get_position,
     get_show_bar,
     get_show_headers,
-    get_thresholds,
-    get_enable_console,
 )
 
-STYLE_BLOCK = """<style>
-#django-devbar {
-    position: fixed; %s; z-index: 999999999;
-    display: flex; align-items: center; gap: 5px;
-    font-family: -apple-system, system-ui, sans-serif;
-    font-size: 11px; font-weight: 500;
-    padding: 4px 8px; margin: 8px; border-radius: 4px;
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-    cursor: default;
-    line-height: 1.3;
-    background: rgba(20, 20, 20, 0.92);
-    color: #f5f5f5;
-}
-#django-devbar.level-warn { border-left: 3px solid #f59e0b; }
-#django-devbar.level-crit { border-left: 3px solid #dc2626; }
-#django-devbar span { opacity: 0.7; }
-#django-devbar strong { opacity: 1; font-weight: 600; }
-#django-devbar .duplicate-badge { color: #f59e0b; font-weight: 600; }
-@media (max-width: 640px) { #django-devbar { display: none; } }
-</style>"""
-
-BAR_TEMPLATE = """<div id="django-devbar" class="level-%s">
-<span>db</span> <strong>%.0fms</strong> <span>·</span>
-<span>app</span> <strong>%.0fms</strong> <span>·</span>
-<span>queries</span> <strong>%d</strong>%s
-</div>"""
-
-SCRIPT_TEMPLATE = """<script>
-(function() {
-    const stats = %s;
-    if (stats.duplicates && stats.duplicates.length > 0) {
-        console.groupCollapsed(`⚠️ Django DevBar: Duplicate Queries Detected (${stats.duplicates.length})`);
-        console.table(stats.duplicates.map(d => ({SQL: d.sql, Parameters: d.params, Duration_ms: d.duration})));
-        console.groupEnd();
-    }
-})();
-</script>"""
-
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
+
+_template_engine = Engine(
+    dirs=[Path(__file__).parent / "templates"],
+    autoescape=True,
+)
 
 
 class DevBarMiddleware:
@@ -81,8 +45,7 @@ class DevBarMiddleware:
         stats["python_time"] = python_time
         stats["total_time"] = total_time
 
-        thresholds = get_thresholds()
-        level = self._determine_level(stats, total_time, thresholds)
+        level = "warn" if stats["has_duplicates"] else "ok"
 
         if get_show_headers():
             self._add_headers(response, stats)
@@ -91,20 +54,6 @@ class DevBarMiddleware:
             self._inject_devbar(response, stats, level)
 
         return response
-
-    def _determine_level(self, stats, total_time, thresholds):
-        if (
-            total_time > thresholds["time_critical"]
-            or stats["count"] > thresholds["count_critical"]
-        ):
-            return "crit"
-        if (
-            stats["has_duplicates"]
-            or total_time > thresholds["time_warning"]
-            or stats["count"] > thresholds["count_warning"]
-        ):
-            return "warn"
-        return "ok"
 
     def _add_headers(self, response, stats):
         response["DevBar-Query-Count"] = str(stats["count"])
@@ -129,28 +78,30 @@ class DevBarMiddleware:
         if not matches:
             return
 
-        dup_marker = (
-            ' <strong class="duplicate-badge">(d)</strong>'
-            if stats["has_duplicates"]
-            else ""
+        duplicates_html = self._build_duplicates_html(stats.get("duplicate_queries", []))
+
+        template = _template_engine.get_template("django_devbar/devbar.html")
+        html = template.render(
+            Context(
+                {
+                    "position": get_position(),
+                    "level": level,
+                    "db_time": stats["duration"],
+                    "app_time": stats["python_time"],
+                    "query_count": stats["count"],
+                    "duplicates_html": duplicates_html,
+                }
+            )
         )
 
-        css = STYLE_BLOCK % get_position()
-        html = BAR_TEMPLATE % (
-            level,
-            stats["duration"],
-            stats["python_time"],
-            stats["count"],
-            dup_marker,
-        )
-
-        script = ""
-        if get_enable_console() and stats.get("duplicate_queries"):
-            console_data = {"duplicates": stats["duplicate_queries"]}
-            script = SCRIPT_TEMPLATE % json.dumps(console_data)
-
-        payload = (css + html + script).encode(response.charset or "utf-8")
+        payload = html.encode(response.charset or "utf-8")
 
         idx = matches[-1].start()
         response.content = content[:idx] + payload + content[idx:]
         response["Content-Length"] = str(len(response.content))
+
+    def _build_duplicates_html(self, duplicates):
+        if not duplicates:
+            return ""
+        template = _template_engine.get_template("django_devbar/duplicates.html")
+        return template.render(Context({"duplicates": duplicates}))
