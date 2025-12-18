@@ -6,6 +6,8 @@ Lightweight performance devbar for Django. Shows DB query count, query duration,
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
+> **Note:** This package is experimental and may introduce breaking changes in minor versions.
+
 ## Installation
 
 ```bash
