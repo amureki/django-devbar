@@ -95,9 +95,7 @@ class DevBarMiddleware:
         if not matches:
             return
 
-        duplicates_html = self._build_duplicates_html(
-            stats.get("duplicate_queries", [])
-        )
+        duplicates_html = self._build_duplicates_html(stats.get("duplicate_queries", []))
 
         template = _template_engine.get_template("django_devbar/devbar.html")
         html = template.render(
@@ -122,5 +120,15 @@ class DevBarMiddleware:
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
-        template = _template_engine.get_template("django_devbar/duplicates.html")
-        return template.render(Context({"duplicates": duplicates}))
+        from html import escape
+
+        items = "".join(
+            f'<details><summary><code>{escape(d["sql"][:70])}'
+            f'{"..." if len(d["sql"]) > 70 else ""}</code></summary>'
+            f'<code>{escape(d["sql"])}</code></details>'
+            for d in duplicates
+        )
+        return (
+            f' <details><summary>({len(duplicates)}d)</summary>'
+            f'<div class="dup-list">{items}</div></details>'
+        )
