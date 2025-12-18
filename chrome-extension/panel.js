@@ -2,6 +2,18 @@
   'use strict';
 
   const MAX_HISTORY = 50;
+  const STORAGE_KEY = 'django-devbar-show-bar';
+
+  const checkbox = document.getElementById('show-bar-toggle');
+  if (checkbox && chrome && chrome.storage) {
+    chrome.storage.local.get([STORAGE_KEY], (result) => {
+      checkbox.checked = result[STORAGE_KEY] !== false;
+    });
+
+    checkbox.addEventListener('change', () => {
+      chrome.storage.local.set({ [STORAGE_KEY]: checkbox.checked });
+    });
+  }
 
   let requestHistory = [];
   let currentRequest = null;
@@ -27,7 +39,7 @@
     renderUI();
   });
 
-  const formatMs = (value) => (value != null ? value.toFixed(0) : '0');
+  const formatMs = (value) => value?.toFixed(0) ?? '0';
   const formatTime = (date) => {
     const h = date.getHours(), m = date.getMinutes(), s = date.getSeconds(), ms = date.getMilliseconds();
     return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
@@ -76,10 +88,8 @@
 
   function isDocumentRequest(request) {
     if (request._resourceType === 'document') return true;
-    const contentType = request.response.headers.find(
-      h => h.name.toLowerCase() === 'content-type'
-    );
-    return contentType?.value.includes('text/html');
+    const contentType = request.response.headers.find(h => h.name.toLowerCase() === 'content-type');
+    return contentType?.value.includes('text/html') ?? false;
   }
 
   function isMainPageRequest(url) {
@@ -152,10 +162,11 @@
           <span class="request-url" title="${escapeHtml(url)}">${escapeHtml(url)}</span>
         </div>
         <div class="metrics">
-          ${renderMetric('DB', formatMs(data.db_time), 'ms')}
-          ${renderMetric('App', formatMs(data.app_time), 'ms')}
-          ${renderMetric('Queries', data.count ?? 0)}
+          ${renderMetric('db', formatMs(data.db_time), 'ms')}
+          ${renderMetric('app', formatMs(data.app_time), 'ms')}
+          ${renderMetric('queries', data.count ?? 0)}
           ${data.has_duplicates ? `<span class="dup-warn">⚠ ${data.duplicates?.length || ''} dup</span>` : ''}
+          <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
         </div>
       </div>`;
 
@@ -167,7 +178,10 @@
 
     const otherRequests = requestHistory
       .filter(r => r !== currentRequest)
-      .sort((a, b) => a.isMainPage !== b.isMainPage ? (a.isMainPage ? -1 : 1) : b.timestamp - a.timestamp);
+      .sort((a, b) => {
+        if (a.isMainPage !== b.isMainPage) return a.isMainPage ? -1 : 1;
+        return b.timestamp - a.timestamp;
+      });
 
     if (otherRequests.length > 0) {
       html += `<div class="history"><div class="history-title">Other (${otherRequests.length})</div>
@@ -180,10 +194,11 @@
               <span class="hist-url" title="${escapeHtml(req.url)}">${escapeHtml(req.url)}</span>
             </div>
             <div class="hist-stats">
-              ${renderMetric('DB', formatMs(req.data.db_time), 'ms')}
-              ${renderMetric('App', formatMs(req.data.app_time), 'ms')}
-              ${renderMetric('Queries', req.data.count ?? 0)}
+              ${renderMetric('db', formatMs(req.data.db_time), 'ms')}
+              ${renderMetric('app', formatMs(req.data.app_time), 'ms')}
+              ${renderMetric('queries', req.data.count ?? 0)}
               ${req.data.has_duplicates ? `<span class="dup-warn">⚠</span>` : ''}
+              <span class="metric-label">${formatTime(req.timestamp)}</span>
             </div>
           </div>`;
         }).join('')}
@@ -199,17 +214,8 @@
 
     harLog.entries.forEach(entry => processRequest(entry, { skipRender: true }));
 
-    const mainPageReq = requestHistory.find(r => r.isMainPage);
-
-    if (mainPageReq) {
-      currentRequest = mainPageReq;
-    } else {
-      const docRequests = requestHistory.filter(r => r.isDocument);
-      const oldestDoc = docRequests[docRequests.length - 1];
-      if (oldestDoc) {
-        currentRequest = oldestDoc;
-      }
-    }
+    currentRequest = requestHistory.find(r => r.isMainPage)
+      || requestHistory.filter(r => r.isDocument).pop();
 
     renderUI();
   }

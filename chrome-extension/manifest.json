@@ -9,5 +9,18 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": []
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "https://localhost/*",
+        "http://*.local/*",
+        "http://*.test/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
 }
