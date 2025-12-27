@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Django DevBar",
-  "version": "0.1.0",
-  "description": "Chrome DevTools panel for Django DevBar performance metrics",
+  "version": "1.0.0",
+  "description": "View Django DevBar performance metrics in Chrome DevTools. Track database queries, response times, and duplicate query detection for Django applications during development.",
   "devtools_page": "devtools.html",
   "icons": {
     "16": "icons/icon16.png",
@@ -22,5 +22,9 @@
       "js": ["content.js"],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "homepage_url": "https://github.com/amureki/django-devbar"
 }

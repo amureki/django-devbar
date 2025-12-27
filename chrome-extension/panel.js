@@ -147,9 +147,52 @@
     return { class: 'type-xhr', label: 'XHR' };
   }
 
+  function renderEmptyState() {
+    const app = document.getElementById('app');
+    const isLocalDomain = pageUrl && (
+      pageUrl.includes('localhost') ||
+      pageUrl.includes('127.0.0.1') ||
+      pageUrl.includes('.local') ||
+      pageUrl.includes('.test')
+    );
+
+    let html = `
+      <div class="empty-state">
+        <h2>Django DevBar</h2>`;
+
+    if (!isLocalDomain && pageUrl) {
+      html += `
+        <p style="margin-top: 12px;">⚠️ Not on a local development domain</p>
+        <p style="margin-top: 6px;">This extension only works on localhost and local development domains.</p>
+        <p style="margin-top: 12px; font-size: 10px;">
+          <a href="https://github.com/amureki/django-devbar" target="_blank" style="color: #1a73e8;">django-devbar</a>
+        </p>`;
+    } else {
+      html += `
+        <p style="margin-top: 12px;">No requests captured yet.</p>
+        <p style="margin-top: 6px;">Navigate to a page with Django DevBar enabled.</p>
+        <div style="margin-top: 16px; font-size: 11px; color: #888; line-height: 1.6;">
+          <strong>Troubleshooting:</strong><br>
+          • Make sure Django DevBar middleware is installed<br>
+          • Set <span class="code">DEVBAR_SHOW_HEADERS = True</span> in settings<br>
+          • Reload the page after enabling headers<br>
+          • Check that you're on a localhost or .local/.test domain
+        </div>
+        <p style="margin-top: 12px; font-size: 10px;">
+          <a href="https://github.com/amureki/django-devbar" target="_blank" style="color: #1a73e8;">django-devbar</a>
+        </p>`;
+    }
+
+    html += `</div>`;
+    app.innerHTML = html;
+  }
+
   function renderUI() {
     const app = document.getElementById('app');
-    if (!currentRequest) return;
+    if (!currentRequest) {
+      renderEmptyState();
+      return;
+    }
 
     const { data, method, url } = currentRequest;
     const type = getRequestType(currentRequest);
@@ -229,4 +272,6 @@
   });
 
   chrome.devtools.network.onRequestFinished.addListener(processRequest);
+
+  renderEmptyState();
 })();

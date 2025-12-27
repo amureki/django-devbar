@@ -40,15 +40,18 @@
     .hist-url { color: #1a73e8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .hist-stats { display: flex; gap: 12px; color: #666; font-size: 10px; flex-shrink: 0; }
 
-    .controls { display: flex; align-items: center; justify-content: flex-end; padding: 4px 8px; margin-bottom: 4px; }
+    .controls { display: flex; align-items: center; justify-content: flex-end; padding: 4px 8px; margin-bottom: 4px; gap: 12px; }
     .controls label { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; cursor: pointer; user-select: none; }
     .controls input[type="checkbox"] { cursor: pointer; }
+    .repo-link { font-size: 10px; color: #1a73e8; text-decoration: none; }
+    .repo-link:hover { text-decoration: underline; }
 
     @media (prefers-color-scheme: dark) {
       body { background: #1e1e1e; color: #e0e0e0; }
       .empty-state { color: #999; }
       .empty-state p { color: #666; }
-      .code { background: #333; }
+      .empty-state a { color: #6db3f2; }
+      .code { background: #333; color: #e0e0e0; }
       .current, .hist-row { background: #2d2d2d; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
       .request-url, .hist-url { color: #6db3f2; }
       .request-method { background: #1a3a5c; color: #6db3f2; }
@@ -61,6 +64,7 @@
       .type-xhr { background: #374151; color: #9ca3af; }
       .history-title { color: #888; background: #1e1e1e; }
       .controls label { color: #999; }
+      .repo-link { color: #6db3f2; }
     }
   </style>
 </head>
@@ -68,16 +72,10 @@
   <div class="controls">
     <label>
       <input type="checkbox" id="show-bar-toggle" checked>
-      Show on-page bar
+      Show <a href="https://github.com/amureki/django-devbar" target="_blank" class="repo-link">django-devbar</a> on page
     </label>
   </div>
-  <div id="app">
-    <div class="empty-state">
-      <h2>Django DevBar</h2>
-      <p>Navigate to a page with Django DevBar enabled.</p>
-      <p style="margin-top: 6px;"><span class="code">DEVBAR_EXTENSION_MODE = True</span></p>
-    </div>
-  </div>
+  <div id="app"></div>
   <script src="panel.js"></script>
 </body>
 </html>

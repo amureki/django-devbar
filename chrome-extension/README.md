@@ -81,6 +81,76 @@ To make changes:
 3. Click the refresh icon on the Django DevBar extension
 4. Reload DevTools
 
-## Publishing (Future)
+## Chrome Web Store Publishing
 
-Once stable, this extension will be published to the Chrome Web Store for easy installation.
+### Prerequisites
+
+- [x] Privacy policy created and hosted (privacy.html via GitHub Pages)
+- [x] Manifest V3 compliant
+- [x] Version 1.0.0
+- [ ] Screenshots captured (3-5 required)
+- [ ] Promotional tile created (440x280 PNG)
+
+### Manual Steps Required
+
+1. **Capture Screenshots** (1280x800 or 640x400):
+   - DevTools panel with metrics for a page with queries
+   - Duplicate queries section expanded
+   - Request history view
+   - Dark mode variant (optional)
+
+2. **Create Promotional Tile** (440x280 PNG):
+   - Show extension name: "Django DevBar"
+   - Include visual of DevTools panel or metrics
+   - Professional, clean design
+
+3. **Host Privacy Policy**:
+   - Enable GitHub Pages for this repository
+   - Set privacy policy URL in Chrome Web Store listing to: `https://[your-username].github.io/django-devbar/chrome-extension/privacy.html`
+
+4. **Submit to Chrome Web Store**:
+   - Create a [Chrome Web Store Developer account](https://chrome.google.com/webstore/devconsole) ($5 one-time fee)
+   - Zip the chrome-extension folder (excluding README.md)
+   - Upload to Chrome Web Store Developer Dashboard
+   - Fill in listing details:
+     - **Category**: Developer Tools
+     - **Description**: Expanded description from manifest.json
+     - **Screenshots**: Upload 3-5 screenshots
+     - **Promotional Images**: Upload 440x280 tile
+     - **Privacy Policy URL**: GitHub Pages URL
+     - **Support URL**: https://github.com/amureki/django-devbar/issues
+   - Submit for review (typically 1-3 days)
+
+### Store Listing Text
+
+**Short description** (132 chars max):
+```
+View Django DevBar metrics in Chrome DevTools: database queries, response times, and duplicate query detection.
+```
+
+**Detailed description**:
+```
+Django DevBar - Chrome DevTools Panel
+
+View Django DevBar performance metrics directly in Chrome DevTools. Track database queries, response times, and duplicate query detection for your Django applications during development.
+
+Features:
+• Real-time performance metrics in DevTools panel
+• Database query count and execution time tracking
+• Duplicate query detection with SQL details
+• Request history (up to 50 requests)
+• Dark mode support
+• Toggle on-page bar visibility
+
+Works with Django DevBar middleware on localhost and local development domains.
+
+SETUP:
+1. Install Django DevBar middleware in your Django project
+2. Set DEVBAR_SHOW_HEADERS = True in Django settings
+3. Open Chrome DevTools and navigate to the "Django DevBar" tab
+4. Visit your Django application on localhost
+
+This extension only works with local development environments (localhost, 127.0.0.1, *.local, *.test domains) for security and privacy.
+
+Source code: https://github.com/amureki/django-devbar
+```
