@@ -1,3 +1,4 @@
+import json
 import re
 from contextlib import ExitStack
 from pathlib import Path
@@ -61,6 +62,19 @@ class DevBarMiddleware:
         response["DevBar-App-Time"] = f"{stats['python_time']:.0f}ms"
         if stats["has_duplicates"]:
             response["DevBar-Duplicates"] = str(len(stats["duplicate_queries"]))
+
+        # Add comprehensive JSON data for browser DevTools extension
+        extension_data = {
+            "count": stats["count"],
+            "db_time": stats["duration"],
+            "app_time": stats["python_time"],
+            "total_time": stats["total_time"],
+            "has_duplicates": stats["has_duplicates"],
+        }
+        if stats.get("duplicate_queries"):
+            extension_data["duplicates"] = stats["duplicate_queries"]
+
+        response["DevBar-Data"] = json.dumps(extension_data)
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):

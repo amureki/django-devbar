@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django DevBar - Privacy Policy</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 10px 0;
+        }
+        .last-updated {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Django DevBar - Privacy Policy</h1>
+
+    <p class="last-updated">Last Updated: December 27, 2025</p>
+
+    <h2>Overview</h2>
+    <p>
+        Django DevBar is a developer tool Chrome extension designed to display performance metrics
+        for Django web applications during local development. We are committed to protecting your privacy
+        and being transparent about our data practices.
+    </p>
+
+    <h2>Data Collection</h2>
+    <p>
+        <strong>We do not collect, transmit, or store any personal data.</strong> The extension operates
+        entirely locally on your device and does not send any information to external servers.
+    </p>
+
+    <h2>Data Processed Locally</h2>
+    <p>The extension processes the following data locally in your browser:</p>
+    <ul>
+        <li>
+            <strong>HTTP Response Headers:</strong> The extension reads <code>DevBar-Data</code> headers
+            from HTTP responses to display performance metrics (query count, execution time, etc.).
+            This data is only read from localhost and local development domains.
+        </li>
+        <li>
+            <strong>UI Preferences:</strong> Your preference for showing/hiding the on-page DevBar is
+            stored locally using Chrome's storage API. This setting never leaves your device.
+        </li>
+        <li>
+            <strong>Request History:</strong> The extension maintains a history of up to 50 recent
+            requests with their metrics in memory. This data is cleared when you close DevTools and
+            is never stored persistently.
+        </li>
+    </ul>
+
+    <h2>Permissions Explained</h2>
+    <p>The extension requests the following Chrome permissions:</p>
+    <ul>
+        <li>
+            <strong>storage:</strong> Used solely to save your checkbox preference for showing/hiding
+            the on-page DevBar. No other data is stored.
+        </li>
+        <li>
+            <strong>Content Scripts on Development Domains:</strong> The extension only runs on localhost
+            and local development domains (<code>localhost</code>, <code>127.0.0.1</code>, <code>*.local</code>,
+            <code>*.test</code>) to control DevBar visibility. It does not run on any production websites.
+        </li>
+    </ul>
+
+    <h2>Third-Party Services</h2>
+    <p>
+        This extension does not use any third-party analytics, tracking, or advertising services.
+        There are no third-party libraries that transmit data externally.
+    </p>
+
+    <h2>Data Sharing</h2>
+    <p>
+        We do not share any data with third parties because we do not collect any data in the first place.
+        All processing happens locally in your browser.
+    </p>
+
+    <h2>Data Security</h2>
+    <p>
+        Since the extension only works with local development environments and stores minimal data
+        (a single UI preference), security risks are minimal. We follow Chrome extension best practices:
+    </p>
+    <ul>
+        <li>Manifest V3 compliance for enhanced security</li>
+        <li>Minimal permission requests</li>
+        <li>No remote code execution</li>
+        <li>HTML escaping to prevent XSS attacks</li>
+        <li>Content Security Policy enforcement</li>
+    </ul>
+
+    <h2>Children's Privacy</h2>
+    <p>
+        This extension is a developer tool not directed at children under 13. We do not knowingly
+        collect any information from children.
+    </p>
+
+    <h2>Changes to This Policy</h2>
+    <p>
+        We may update this privacy policy from time to time. Any changes will be reflected in the
+        "Last Updated" date at the top of this document. Continued use of the extension after changes
+        constitutes acceptance of the updated policy.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+        If you have questions about this privacy policy or the extension, please open an issue on our
+        <a href="https://github.com/amureki/django-devbar">GitHub repository</a>.
+    </p>
+
+    <h2>Open Source</h2>
+    <p>
+        This extension is open source. You can review the complete source code at
+        <a href="https://github.com/amureki/django-devbar">https://github.com/amureki/django-devbar</a>
+        to verify our privacy claims.
+    </p>
+</body>
+</html>

@@ -36,7 +36,7 @@ All settings are optional. Configure via a `DEVBAR` dict in your Django settings
 DEVBAR = {
     'POSITION': 'bottom-right',  # bottom-right, bottom-left, top-right, top-left
     'SHOW_BAR': None,            # None (default) = follows DEBUG, or True/False to override
-    'SHOW_HEADERS': False,       # Add X-DevBar-* headers to responses
+    'SHOW_HEADERS': False,       # Add DevBar-* headers to responses
 }
 ```
 
