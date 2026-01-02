@@ -5,9 +5,9 @@
   "description": "View Django DevBar performance metrics in Chrome DevTools. Track database queries, response times, and duplicate query detection for Django applications during development.",
   "devtools_page": "devtools.html",
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
   "permissions": ["storage"],
   "content_scripts": [
