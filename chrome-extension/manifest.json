@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Django DevBar",
+  "version": "1.0.0",
+  "description": "View Django DevBar metrics in Chrome DevTools: database queries, response times, and duplicate queries.",
+  "homepage_url": "https://github.com/amureki/django-devbar",
+  "devtools_page": "devtools.html",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "https://localhost/*",
+        "http://*.local/*",
+        "http://*.test/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
