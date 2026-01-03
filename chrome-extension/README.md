@@ -9,9 +9,22 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
 - **Request History**: Track the last 50 requests in your session
 - **Native DevTools UI**: Seamlessly integrated into Chrome DevTools
 
-## Installation (Development Mode)
+## Installation
 
-1. **Enable Headers in Django**
+1. **Install the Extension**
+
+   **Option A - Chrome Web Store** (recommended):
+   Install directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
+
+   **About Permissions**: Chrome shows a broad permissions warning during install, but this extension only runs on `localhost` and `127.0.0.1` for local Django development. It cannot access other websites.
+
+   **Option B - Development Mode**:
+   - Open Chrome and navigate to `chrome://extensions/`
+   - Enable "Developer mode" (toggle in the top-right corner)
+   - Click "Load unpacked"
+   - Select the `chrome-extension` directory from this repository
+
+2. **Enable Headers in Django**
 
    Add to your Django `settings.py`:
    ```python
@@ -20,25 +33,12 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
    }
    ```
 
-2. **Load the Extension in Chrome**
-
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" (toggle in the top-right corner)
-   - Click "Load unpacked"
-   - Select the `chrome-extension` directory from this repository
-   - The Django DevBar extension should now appear in your extensions list
-
 3. **Use the Extension**
 
    - Open Chrome DevTools (F12 or right-click → Inspect)
    - Navigate to the "Django DevBar" tab
    - Visit any page running Django with DevBar middleware enabled
    - Metrics will appear automatically in the DevTools panel
-
-## Configuration
-
-Requires `DEVBAR = {'SHOW_HEADERS': True}` in Django settings. 
-See the [main README](../README.md) for Django DevBar installation and configuration.
 
 ## Development
 
