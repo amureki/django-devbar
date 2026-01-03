@@ -56,3 +56,12 @@ Headers included:
 | `DevBar-DB-Time` | `87ms` | Total time spent in database queries |
 | `DevBar-App-Time` | `41ms` | Application time (total time minus DB time) |
 | `DevBar-Duplicates` | `3` | Number of duplicate queries detected (only present if duplicates found) |
+
+## Chrome Extension
+
+![Chrome DevTools extension](https://github.com/user-attachments/assets/4288f507-0bd5-4b8c-a3dc-0c4d5b93305f)
+
+View Django DevBar metrics directly in Chrome DevTools with the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
+Requires `DEVBAR = {'SHOW_HEADERS': True}`.
+
+See [chrome-extension/README.md](chrome-extension/README.md) for more details.
