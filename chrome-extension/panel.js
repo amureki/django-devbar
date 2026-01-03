@@ -51,6 +51,15 @@
     return div.innerHTML;
   }
 
+  function getPathFromUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return parsed.pathname + parsed.search;
+    } catch (e) {
+      return url;
+    }
+  }
+
   function parseDevBarHeaders(headers) {
     const devbarHeaders = {};
     for (const { name, value } of headers) {
@@ -202,12 +211,13 @@
         <div class="req-left">
           <span class="request-type ${type.class}">${type.label}</span>
           <span class="request-method">${escapeHtml(method)}</span>
-          <span class="request-url" title="${escapeHtml(url)}">${escapeHtml(url)}</span>
+          <span class="request-url" title="${escapeHtml(url)}">${escapeHtml(getPathFromUrl(url))}</span>
+          <a href="${escapeHtml(url)}" target="_blank" class="url-link" title="Open in new tab">↗</a>
         </div>
         <div class="metrics">
+          ${renderMetric('queries', data.count ?? 0)}
           ${renderMetric('db', formatMs(data.db_time), 'ms')}
           ${renderMetric('app', formatMs(data.app_time), 'ms')}
-          ${renderMetric('queries', data.count ?? 0)}
           ${data.has_duplicates ? `<span class="dup-warn">⚠ ${data.duplicates?.length || ''} dup</span>` : ''}
           <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
         </div>
@@ -234,12 +244,13 @@
             <div class="hist-left">
               <span class="request-type ${t.class}">${t.label}</span>
               <span class="request-method">${escapeHtml(req.method)}</span>
-              <span class="hist-url" title="${escapeHtml(req.url)}">${escapeHtml(req.url)}</span>
+              <span class="hist-url" title="${escapeHtml(req.url)}">${escapeHtml(getPathFromUrl(req.url))}</span>
+              <a href="${escapeHtml(req.url)}" target="_blank" class="url-link" title="Open in new tab">↗</a>
             </div>
             <div class="hist-stats">
+              ${renderMetric('queries', req.data.count ?? 0)}
               ${renderMetric('db', formatMs(req.data.db_time), 'ms')}
               ${renderMetric('app', formatMs(req.data.app_time), 'ms')}
-              ${renderMetric('queries', req.data.count ?? 0)}
               ${req.data.has_duplicates ? `<span class="dup-warn">⚠</span>` : ''}
               <span class="metric-label">${formatTime(req.timestamp)}</span>
             </div>

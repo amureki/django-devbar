@@ -86,7 +86,7 @@
 @media (max-width: 640px) { #django-devbar { display: none; } }
 </style>
 <div id="django-devbar" class="level-{{ level }}">
+<span>queries</span> <strong>{{ query_count }}</strong> <span>·</span>
 <span>db</span> <strong>{{ db_time|floatformat:0 }}ms</strong> <span>·</span>
-<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong> <span>·</span>
-<span>queries</span> <strong>{{ query_count }}</strong>{{ duplicates_html|safe }}
+<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}
 </div>
