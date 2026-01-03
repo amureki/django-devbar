@@ -245,7 +245,7 @@
               <span class="request-type ${t.class}">${t.label}</span>
               <span class="request-method">${escapeHtml(req.method)}</span>
               <span class="hist-url" title="${escapeHtml(req.url)}">${escapeHtml(getPathFromUrl(req.url))}</span>
-              <a href="${escapeHtml(req.url)}" target="_blank" class="url-link" title="Open in new tab">↗</a>
+              <a href="${escapeHtml(req.url)}" target="_blank" class="url-link" title="Open in new tab" aria-label="Open request URL in new tab">↗</a>
             </div>
             <div class="hist-stats">
               ${renderMetric('queries', req.data.count ?? 0)}
