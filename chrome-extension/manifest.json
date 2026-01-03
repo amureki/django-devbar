@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Django DevBar",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "View Django DevBar metrics in Chrome DevTools: database queries, response times, and duplicate queries.",
   "homepage_url": "https://github.com/amureki/django-devbar",
   "devtools_page": "devtools.html",
@@ -16,7 +16,9 @@
       "matches": [
         "http://localhost/*",
         "http://127.0.0.1/*",
-        "https://localhost/*"
+        "https://localhost/*",
+        "http://*.local/*",
+        "http://*.test/*"
       ],
       "js": ["content.js"],
       "run_at": "document_start"
