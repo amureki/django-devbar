@@ -203,3 +203,30 @@ class TestMiddleware:
         assert data["db_time"] == 20.5
         assert data["has_duplicates"] is True
         assert len(data["duplicates"]) == 1
+
+    def test_server_timing_header_always_present(self, rf, monkeypatch):
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 3,
+                "duration": 12.5,
+                "has_duplicates": False,
+                "duplicate_queries": [],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        assert "Server-Timing" in response
+        header = response["Server-Timing"]
+        assert 'db;dur=12.50;desc="DB (3 queries)"' in header
+        assert "app;dur=" in header
+        assert "total;dur=" in header

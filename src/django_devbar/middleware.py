@@ -51,6 +51,8 @@ class DevBarMiddleware:
         if get_show_headers():
             self._add_headers(response, stats)
 
+        self._add_server_timing_header(response, stats)
+
         if get_show_bar() and self._can_inject(response):
             self._inject_devbar(response, stats, level)
 
@@ -75,6 +77,14 @@ class DevBarMiddleware:
             extension_data["duplicates"] = stats["duplicate_queries"]
 
         response["DevBar-Data"] = json.dumps(extension_data)
+
+    def _add_server_timing_header(self, response, stats):
+        parts = [
+            f'db;dur={stats["duration"]:.2f};desc="DB ({stats["count"]} queries)"',
+            f"app;dur={stats['python_time']:.2f}",
+            f"total;dur={stats['total_time']:.2f}",
+        ]
+        response["Server-Timing"] = ", ".join(parts)
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):
