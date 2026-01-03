@@ -42,20 +42,25 @@ DEVBAR = {
 
 ## Response Headers
 
-When `DEVBAR = {'SHOW_HEADERS': True}`, performance metrics are added as HTTP response headers. This is useful for:
+Django DevBar adds HTTP response headers with performance metrics:
+
+- **Server-Timing** (always present) - Standard HTTP header with database, application, and total time metrics. Visible in Chrome DevTools Network tab under Timing.
+
+When `DEVBAR = {'SHOW_HEADERS': True}`, additional headers are included:
+
+- **DevBar-Data** - JSON header with comprehensive metrics including duplicate query details
+
+This is useful for:
 
 - **API endpoints** where the HTML overlay can't be displayed
 - **Automated testing** to assert performance metrics (e.g., fail CI if query count exceeds a limit)
-- **Monitoring tools** that can capture and aggregate header values
+- **Browser extensions** that need detailed duplicate query information
 
-Headers included:
+### Server-Timing format
 
-| Header | Example | Description |
-|--------|---------|-------------|
-| `DevBar-Query-Count` | `12` | Number of database queries executed |
-| `DevBar-DB-Time` | `87ms` | Total time spent in database queries |
-| `DevBar-App-Time` | `41ms` | Application time (total time minus DB time) |
-| `DevBar-Duplicates` | `3` | Number of duplicate queries detected (only present if duplicates found) |
+```
+Server-Timing: db;dur=87.50;desc="DB (12 queries)", app;dur=41.30, total;dur=128.80
+```
 
 ## Chrome Extension
 

@@ -59,13 +59,6 @@ class DevBarMiddleware:
         return response
 
     def _add_headers(self, response, stats):
-        response["DevBar-Query-Count"] = str(stats["count"])
-        response["DevBar-DB-Time"] = f"{stats['duration']:.0f}ms"
-        response["DevBar-App-Time"] = f"{stats['python_time']:.0f}ms"
-        if stats["has_duplicates"]:
-            response["DevBar-Duplicates"] = str(len(stats["duplicate_queries"]))
-
-        # Add comprehensive JSON data for browser DevTools extension
         extension_data = {
             "count": stats["count"],
             "db_time": stats["duration"],
