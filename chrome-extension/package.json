@@ -1,6 +1,6 @@
 {
   "name": "django-devbar-extension",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,6 @@
     "zip": "cd dist && zip -r ../django-devbar-extension.zip ."
   },
   "devDependencies": {
-    "sharp": "^0.33.0"
+    "sharp": "^0.34.5"
   }
 }
