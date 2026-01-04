@@ -6,7 +6,7 @@ Normal operation – showing query count, duration, and application time: ![devb
 
 Duplicate queries detected – severity indicator and details shown: ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
-[![Chrome DevTools extension](https://github.com/user-attachments/assets/4288f507-0bd5-4b8c-a3dc-0c4d5b93305f)](#chrome-extension)
+[![Chrome DevTools extension](https://github.com/user-attachments/assets/bc06af44-a0b3-4561-a13f-8007da53cb9e)](#chrome-extension)
 
 > [!WARNING]
 > This package is experimental and may introduce breaking changes in minor versions.
