@@ -9,9 +9,9 @@ from django.template import Context, Engine
 
 from . import tracker
 from .conf import (
+    get_enable_devtools_data,
     get_position,
     get_show_bar,
-    get_show_headers,
 )
 
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
@@ -48,8 +48,8 @@ class DevBarMiddleware:
 
         level = "warn" if stats["has_duplicates"] else "ok"
 
-        if get_show_headers():
-            self._add_headers(response, stats)
+        if get_enable_devtools_data():
+            self._add_devtools_data_header(response, stats)
 
         self._add_server_timing_header(response, stats)
 
@@ -58,7 +58,7 @@ class DevBarMiddleware:
 
         return response
 
-    def _add_headers(self, response, stats):
+    def _add_devtools_data_header(self, response, stats):
         extension_data = {
             "count": stats["count"],
             "db_time": stats["duration"],

@@ -29,7 +29,7 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
    Add to your Django `settings.py`:
    ```python
    DEVBAR = {
-       'SHOW_HEADERS': True,  # Required for the extension to work
+       'ENABLE_DEVTOOLS_DATA': True,  # Required for the extension to work
    }
    ```
 

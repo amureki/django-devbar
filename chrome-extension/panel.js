@@ -183,7 +183,7 @@
         <div style="margin-top: 16px; font-size: 11px; color: #888; line-height: 1.6;">
           <strong>Troubleshooting:</strong><br>
           • Make sure Django DevBar middleware is installed<br>
-          • Set <span class="code">DEVBAR_SHOW_HEADERS = True</span> in settings<br>
+          • Set <span class="code">DEVBAR = {'ENABLE_DEVTOOLS_DATA': True}</span> in settings<br>
           • Reload the page after enabling headers<br>
           • Check that you're on a localhost or .local/.test domain
         </div>
