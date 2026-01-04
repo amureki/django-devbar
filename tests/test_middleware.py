@@ -155,7 +155,6 @@ class TestMiddleware:
             lambda: {
                 "count": 3,
                 "duration": 10.0,
-                "has_duplicates": True,
                 "duplicate_queries": [
                     {"sql": "SELECT * FROM foo", "params": "(1,)", "duration": 5.0},
                     {"sql": "SELECT * FROM bar", "params": "(2,)", "duration": 3.0},
@@ -173,7 +172,6 @@ class TestMiddleware:
         response = middleware(request)
 
         data = json.loads(response["DevBar-Data"])
-        assert data["has_duplicates"] is True
         assert len(data["duplicates"]) == 2
 
     def test_server_timing_header_always_present(self, rf, monkeypatch):
@@ -183,7 +181,6 @@ class TestMiddleware:
             lambda: {
                 "count": 3,
                 "duration": 12.5,
-                "has_duplicates": False,
                 "duplicate_queries": [],
             },
         )

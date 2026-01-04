@@ -18,7 +18,6 @@ def get_stats():
     return {
         "count": _query_count.get(),
         "duration": _query_duration.get(),
-        "has_duplicates": bool(_duplicate_log.get()),
         "duplicate_queries": _duplicate_log.get(),
     }
 
