@@ -6,6 +6,8 @@ Lightweight performance devbar for Django. Shows DB query count, query duration,
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
+[![Chrome DevTools extension](https://github.com/user-attachments/assets/4288f507-0bd5-4b8c-a3dc-0c4d5b93305f)](#chrome-extension)
+
 > [!WARNING]
 > This package is experimental and may introduce breaking changes in minor versions.
 
@@ -74,8 +76,6 @@ Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 ```
 
 ## Chrome Extension
-
-![Chrome DevTools extension](https://github.com/user-attachments/assets/4288f507-0bd5-4b8c-a3dc-0c4d5b93305f)
 
 View Django DevBar metrics directly in Chrome DevTools with the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
 
