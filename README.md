@@ -59,7 +59,7 @@ This is useful for:
 ### Server-Timing format
 
 ```
-Server-Timing: db;dur=87.50;desc="DB (12 queries)", app;dur=41.30, total;dur=128.80
+Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 ```
 
 ## Chrome Extension

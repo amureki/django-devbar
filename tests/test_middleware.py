@@ -228,6 +228,6 @@ class TestMiddleware:
 
         assert "Server-Timing" in response
         header = response["Server-Timing"]
-        assert 'db;dur=12.50;desc="DB (3 queries)"' in header
+        assert "db;dur=12.50" in header
         assert "app;dur=" in header
         assert "total;dur=" in header

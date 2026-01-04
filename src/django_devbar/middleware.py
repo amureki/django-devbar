@@ -73,7 +73,7 @@ class DevBarMiddleware:
 
     def _add_server_timing_header(self, response, stats):
         parts = [
-            f'db;dur={stats["duration"]:.2f};desc="DB ({stats["count"]} queries)"',
+            f"db;dur={stats['duration']:.2f}",
             f"app;dur={stats['python_time']:.2f}",
             f"total;dur={stats['total_time']:.2f}",
         ]
