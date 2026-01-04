@@ -46,15 +46,13 @@ class DevBarMiddleware:
         stats["python_time"] = python_time
         stats["total_time"] = total_time
 
-        level = "warn" if stats["has_duplicates"] else "ok"
-
         if get_enable_devtools_data():
             self._add_devtools_data_header(response, stats)
 
         self._add_server_timing_header(response, stats)
 
         if get_show_bar() and self._can_inject(response):
-            self._inject_devbar(response, stats, level)
+            self._inject_devbar(response, stats)
 
         return response
 
@@ -64,7 +62,6 @@ class DevBarMiddleware:
             "db_time": stats["duration"],
             "app_time": stats["python_time"],
             "total_time": stats["total_time"],
-            "has_duplicates": stats["has_duplicates"],
         }
         if stats.get("duplicate_queries"):
             extension_data["duplicates"] = stats["duplicate_queries"]
@@ -89,7 +86,7 @@ class DevBarMiddleware:
             return False
         return hasattr(response, "content")
 
-    def _inject_devbar(self, response, stats, level):
+    def _inject_devbar(self, response, stats):
         content = response.content
         matches = list(BODY_CLOSE_RE.finditer(content))
         if not matches:
@@ -104,7 +101,6 @@ class DevBarMiddleware:
             Context(
                 {
                     "position": get_position(),
-                    "level": level,
                     "db_time": stats["duration"],
                     "app_time": stats["python_time"],
                     "query_count": stats["count"],

@@ -87,7 +87,6 @@
         db_time: dbTime,
         app_time: appTime,
         total_time: dbTime + appTime,
-        has_duplicates: !!devbarHeaders['devbar-duplicates'],
         duplicates: []
       };
     }
@@ -218,12 +217,12 @@
           ${renderMetric('queries', data.count ?? 0)}
           ${renderMetric('db', formatMs(data.db_time), 'ms')}
           ${renderMetric('app', formatMs(data.app_time), 'ms')}
-          ${data.has_duplicates ? `<span class="dup-warn">⚠ ${data.duplicates?.length || ''} dup</span>` : ''}
+          ${data.duplicates?.length ? `<span class="dup-warn">⚠ ${data.duplicates.length} dup</span>` : ''}
           <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
         </div>
       </div>`;
 
-    if (data.has_duplicates && data.duplicates?.length > 0) {
+    if (data.duplicates?.length > 0) {
       html += `<div class="dups">${data.duplicates.map(dup =>
         `<div class="dup"><code>${escapeHtml(dup.sql)}</code> <span class="dup-time">${(dup.duration ?? 0).toFixed(1)}ms</span></div>`
       ).join('')}</div>`;
@@ -256,7 +255,7 @@
               ${renderMetric('queries', req.data.count ?? 0)}
               ${renderMetric('db', formatMs(req.data.db_time), 'ms')}
               ${renderMetric('app', formatMs(req.data.app_time), 'ms')}
-              ${req.data.has_duplicates ? `<span class="dup-warn">⚠</span>` : ''}
+              ${req.data.duplicates?.length ? `<span class="dup-warn">⚠</span>` : ''}
               <span class="metric-label">${formatTime(req.timestamp)}</span>
             </div>
           </div>`;

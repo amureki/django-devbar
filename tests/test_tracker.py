@@ -56,7 +56,7 @@ class TestTracker:
         tracker.tracking_wrapper(mock_execute, "SELECT 1", [], False, {})
         tracker.tracking_wrapper(mock_execute, "SELECT 2", [], False, {})
 
-        assert tracker.get_stats()["has_duplicates"] is False
+        assert len(tracker.get_stats()["duplicate_queries"]) == 0
 
     def test_no_duplicates_for_same_sql_different_params(self):
         tracker.reset()
@@ -71,7 +71,7 @@ class TestTracker:
             mock_execute, "SELECT * FROM t WHERE id=%s", [2], False, {}
         )
 
-        assert tracker.get_stats()["has_duplicates"] is False
+        assert len(tracker.get_stats()["duplicate_queries"]) == 0
 
     def test_duplicates_detected_same_sql_same_params(self):
         tracker.reset()
@@ -86,4 +86,4 @@ class TestTracker:
             mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
         )
 
-        assert tracker.get_stats()["has_duplicates"] is True
+        assert len(tracker.get_stats()["duplicate_queries"]) == 1

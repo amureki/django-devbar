@@ -14,6 +14,7 @@
     color: #f5f5f5;
 }
 #django-devbar.level-warn { border-left: 3px solid #f59e0b; }
+#django-devbar.has-duplicates { border-left: 3px solid #f59e0b; }
 #django-devbar span { opacity: 0.7; }
 #django-devbar strong { opacity: 1; font-weight: 600; }
 #django-devbar details { display: inline; position: relative; }
@@ -85,7 +86,7 @@
 }
 @media (max-width: 640px) { #django-devbar { display: none; } }
 </style>
-<div id="django-devbar" class="level-{{ level }}">
+<div id="django-devbar"{% if duplicates_html %} class="has-duplicates"{% endif %}>
 <span>queries</span> <strong>{{ query_count }}</strong> <span>·</span>
 <span>db</span> <strong>{{ db_time|floatformat:0 }}ms</strong> <span>·</span>
 <span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}
