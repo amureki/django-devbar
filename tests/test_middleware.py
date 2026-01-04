@@ -1,3 +1,5 @@
+import json
+
 from django.http import HttpResponse, StreamingHttpResponse
 
 from django_devbar.middleware import DevBarMiddleware
@@ -121,10 +123,12 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert "DevBar-Query-Count" in response
-        assert "DevBar-DB-Time" in response
-        assert "DevBar-App-Time" in response
-        assert "DevBar-Duplicates" not in response
+        assert "DevBar-Data" in response
+        data = json.loads(response["DevBar-Data"])
+        assert data["count"] >= 0
+        assert data["db_time"] >= 0
+        assert data["app_time"] >= 0
+        assert data["total_time"] >= 0
 
     def test_headers_hidden_when_disabled(self, rf, settings):
         settings.DEVBAR = {"SHOW_HEADERS": False, "DEVTOOLS_MODE": False}
@@ -138,12 +142,9 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert "DevBar-Query-Count" not in response
-        assert "DevBar-DB-Time" not in response
-        assert "DevBar-App-Time" not in response
-        assert "DevBar-Duplicates" not in response
+        assert "DevBar-Data" not in response
 
-    def test_has_duplicates_header_present_when_duplicates(self, rf, monkeypatch):
+    def test_duplicate_data_in_json_header(self, rf, monkeypatch):
         monkeypatch.setattr(
             tracker,
             "get_stats",
@@ -167,7 +168,9 @@ class TestMiddleware:
         request = rf.get("/")
         response = middleware(request)
 
-        assert response["DevBar-Duplicates"] == "2"
+        data = json.loads(response["DevBar-Data"])
+        assert data["has_duplicates"] is True
+        assert len(data["duplicates"]) == 2
 
     def test_extension_mode_adds_json_header(self, rf, settings, monkeypatch):
         settings.DEVBAR_EXTENSION_MODE = True
@@ -196,10 +199,35 @@ class TestMiddleware:
         response = middleware(request)
 
         assert "DevBar-Data" in response
-        import json
-
         data = json.loads(response["DevBar-Data"])
         assert data["count"] == 5
         assert data["db_time"] == 20.5
         assert data["has_duplicates"] is True
         assert len(data["duplicates"]) == 1
+
+    def test_server_timing_header_always_present(self, rf, monkeypatch):
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 3,
+                "duration": 12.5,
+                "has_duplicates": False,
+                "duplicate_queries": [],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        assert "Server-Timing" in response
+        header = response["Server-Timing"]
+        assert "db;dur=12.50" in header
+        assert "app;dur=" in header
+        assert "total;dur=" in header

@@ -51,19 +51,14 @@ class DevBarMiddleware:
         if get_show_headers():
             self._add_headers(response, stats)
 
+        self._add_server_timing_header(response, stats)
+
         if get_show_bar() and self._can_inject(response):
             self._inject_devbar(response, stats, level)
 
         return response
 
     def _add_headers(self, response, stats):
-        response["DevBar-Query-Count"] = str(stats["count"])
-        response["DevBar-DB-Time"] = f"{stats['duration']:.0f}ms"
-        response["DevBar-App-Time"] = f"{stats['python_time']:.0f}ms"
-        if stats["has_duplicates"]:
-            response["DevBar-Duplicates"] = str(len(stats["duplicate_queries"]))
-
-        # Add comprehensive JSON data for browser DevTools extension
         extension_data = {
             "count": stats["count"],
             "db_time": stats["duration"],
@@ -75,6 +70,14 @@ class DevBarMiddleware:
             extension_data["duplicates"] = stats["duplicate_queries"]
 
         response["DevBar-Data"] = json.dumps(extension_data)
+
+    def _add_server_timing_header(self, response, stats):
+        parts = [
+            f"db;dur={stats['duration']:.2f}",
+            f"app;dur={stats['python_time']:.2f}",
+            f"total;dur={stats['total_time']:.2f}",
+        ]
+        response["Server-Timing"] = ", ".join(parts)
 
     def _can_inject(self, response):
         if getattr(response, "streaming", False):
