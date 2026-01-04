@@ -8,6 +8,16 @@ Lightweight performance devbar for Django. Shows DB query count, query duration,
 
 > **Note:** This package is experimental and may introduce breaking changes in minor versions.
 
+## Motivation
+
+While [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/) is a proven tool trusted by countless projects, django-devbar explores a different approach to development debugging:
+
+- **Minimal setup** — just add middleware, nothing else required
+- **Browser DevTools integration** — Chrome extension panel works with any response type, including JSON
+- **Zero extra dependencies** — only requires Django
+- **Lower overhead** — no extra requests to debug endpoints
+- **Non-intrusive** — HTML bar is optional; works via headers and DevTools panel alone
+
 ## Installation
 
 ```bash
@@ -44,7 +54,7 @@ DEVBAR = {
 
 Django DevBar adds HTTP response headers with performance metrics:
 
-- **Server-Timing** (always present) - Standard HTTP header with database, application, and total time metrics. Visible in Chrome DevTools Network tab under Timing.
+- **Server-Timing** (always present) – Standard HTTP header with database, application, and total time metrics. Visible in Chrome DevTools Network tab under Timing.
 
 An additional header is included by default in DEBUG mode:
 
