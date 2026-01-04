@@ -34,9 +34,9 @@ All settings are optional. Configure via a `DEVBAR` dict in your Django settings
 
 ```python
 DEVBAR = {
-    'POSITION': 'bottom-right',     # bottom-right, bottom-left, top-right, top-left
-    'SHOW_BAR': None,               # None (default) = follows DEBUG, or True/False to override
-    'ENABLE_DEVTOOLS_DATA': False,  # Add DevBar-Data header for browser extensions
+    'POSITION': 'bottom-right',     # bottom-right (default), bottom-left, top-right, top-left
+    'SHOW_BAR': None,               # follows DEBUG; set True/False to override
+    'ENABLE_DEVTOOLS_DATA': None,   # follows DEBUG; set True/False to override
 }
 ```
 
@@ -46,7 +46,7 @@ Django DevBar adds HTTP response headers with performance metrics:
 
 - **Server-Timing** (always present) - Standard HTTP header with database, application, and total time metrics. Visible in Chrome DevTools Network tab under Timing.
 
-When `DEVBAR = {'ENABLE_DEVTOOLS_DATA': True}`, an additional header is included:
+An additional header is included by default in DEBUG mode:
 
 - **DevBar-Data** - JSON header with comprehensive metrics including duplicate query details
 
@@ -67,6 +67,5 @@ Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 ![Chrome DevTools extension](https://github.com/user-attachments/assets/4288f507-0bd5-4b8c-a3dc-0c4d5b93305f)
 
 View Django DevBar metrics directly in Chrome DevTools with the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
-Requires `DEVBAR = {'ENABLE_DEVTOOLS_DATA': True}`.
 
 See [chrome-extension/README.md](chrome-extension/README.md) for more details.
