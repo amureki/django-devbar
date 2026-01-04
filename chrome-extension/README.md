@@ -24,16 +24,7 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
    - Click "Load unpacked"
    - Select the `chrome-extension` directory from this repository
 
-2. **Enable Headers in Django**
-
-   Add to your Django `settings.py`:
-   ```python
-   DEVBAR = {
-       'ENABLE_DEVTOOLS_DATA': True,  # Required for the extension to work
-   }
-   ```
-
-3. **Use the Extension**
+2. **Use the Extension**
 
    - Open Chrome DevTools (F12 or right-click → Inspect)
    - Navigate to the "Django DevBar" tab

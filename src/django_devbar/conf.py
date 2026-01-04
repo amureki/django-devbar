@@ -12,7 +12,7 @@ def get_config():
     return {
         "POSITION": "bottom-right",
         "SHOW_BAR": None,  # None = use settings.DEBUG
-        "ENABLE_DEVTOOLS_DATA": False,
+        "ENABLE_DEVTOOLS_DATA": None,  # None = use settings.DEBUG
         **getattr(settings, "DEVBAR", {}),
     }
 
@@ -30,4 +30,6 @@ def get_show_bar():
 
 
 def get_enable_devtools_data():
-    return get_config()["ENABLE_DEVTOOLS_DATA"]
+    config = get_config()
+    enable = config["ENABLE_DEVTOOLS_DATA"]
+    return settings.DEBUG if enable is None else enable
