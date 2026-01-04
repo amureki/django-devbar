@@ -229,15 +229,20 @@
       ).join('')}</div>`;
     }
 
+    const hasPageOrDoc = requestHistory.some(r => r.isMainPage || r.isDocument);
+
     const otherRequests = requestHistory
       .filter(r => r !== currentRequest)
       .sort((a, b) => {
-        if (a.isMainPage !== b.isMainPage) return a.isMainPage ? -1 : 1;
+        if (hasPageOrDoc) {
+          if (a.isMainPage !== b.isMainPage) return a.isMainPage ? -1 : 1;
+        }
         return b.timestamp - a.timestamp;
       });
 
     if (otherRequests.length > 0) {
-      html += `<div class="history"><div class="history-title">Other (${otherRequests.length})</div>
+      const sectionTitle = hasPageOrDoc ? 'Other' : 'Recent Requests';
+      html += `<div class="history"><div class="history-title">${sectionTitle} (${otherRequests.length})</div>
         ${otherRequests.map(req => {
           const t = getRequestType(req);
           return `<div class="hist-row">
