@@ -12,7 +12,7 @@ def get_config():
     return {
         "POSITION": "bottom-right",
         "SHOW_BAR": None,  # None = use settings.DEBUG
-        "SHOW_HEADERS": False,
+        "ENABLE_DEVTOOLS_DATA": False,
         **getattr(settings, "DEVBAR", {}),
     }
 
@@ -29,5 +29,5 @@ def get_show_bar():
     return settings.DEBUG if show_bar is None else show_bar
 
 
-def get_show_headers():
-    return get_config()["SHOW_HEADERS"]
+def get_enable_devtools_data():
+    return get_config()["ENABLE_DEVTOOLS_DATA"]

@@ -113,7 +113,9 @@ class TestMiddleware:
 
         assert b"django-devbar" not in response.content
 
-    def test_headers_added(self, rf):
+    def test_devtools_data_header_added(self, rf, settings):
+        settings.DEVBAR = {"ENABLE_DEVTOOLS_DATA": True}
+
         def get_response(request):
             return HttpResponse(
                 "<html><body>Test</body></html>", content_type="text/html"
@@ -130,8 +132,8 @@ class TestMiddleware:
         assert data["app_time"] >= 0
         assert data["total_time"] >= 0
 
-    def test_headers_hidden_when_disabled(self, rf, settings):
-        settings.DEVBAR = {"SHOW_HEADERS": False, "DEVTOOLS_MODE": False}
+    def test_devtools_data_header_hidden_when_disabled(self, rf, settings):
+        settings.DEVBAR = {"ENABLE_DEVTOOLS_DATA": False}
 
         def get_response(request):
             return HttpResponse(
@@ -144,7 +146,9 @@ class TestMiddleware:
 
         assert "DevBar-Data" not in response
 
-    def test_duplicate_data_in_json_header(self, rf, monkeypatch):
+    def test_duplicate_data_in_json_header(self, rf, monkeypatch, settings):
+        settings.DEVBAR = {"ENABLE_DEVTOOLS_DATA": True}
+
         monkeypatch.setattr(
             tracker,
             "get_stats",
@@ -171,39 +175,6 @@ class TestMiddleware:
         data = json.loads(response["DevBar-Data"])
         assert data["has_duplicates"] is True
         assert len(data["duplicates"]) == 2
-
-    def test_extension_mode_adds_json_header(self, rf, settings, monkeypatch):
-        settings.DEVBAR_EXTENSION_MODE = True
-        settings.DEVBAR_SHOW_HEADERS = True
-
-        monkeypatch.setattr(
-            tracker,
-            "get_stats",
-            lambda: {
-                "count": 5,
-                "duration": 20.5,
-                "has_duplicates": True,
-                "duplicate_queries": [
-                    {"sql": "SELECT * FROM foo", "params": "(1,)", "duration": 5.0}
-                ],
-            },
-        )
-
-        def get_response(request):
-            return HttpResponse(
-                "<html><body>Test</body></html>", content_type="text/html"
-            )
-
-        middleware = DevBarMiddleware(get_response)
-        request = rf.get("/")
-        response = middleware(request)
-
-        assert "DevBar-Data" in response
-        data = json.loads(response["DevBar-Data"])
-        assert data["count"] == 5
-        assert data["db_time"] == 20.5
-        assert data["has_duplicates"] is True
-        assert len(data["duplicates"]) == 1
 
     def test_server_timing_header_always_present(self, rf, monkeypatch):
         monkeypatch.setattr(
