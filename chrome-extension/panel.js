@@ -1,4 +1,4 @@
-(function() {
+((() => {
   'use strict';
 
   const MAX_HISTORY = 50;
@@ -289,4 +289,4 @@
   chrome.devtools.network.onRequestFinished.addListener(processRequest);
 
   renderEmptyState();
-})();
+}))();

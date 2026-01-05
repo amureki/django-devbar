@@ -20,7 +20,7 @@ function build() {
       "'Django DevBar (dev)'"
     );
     writeFileSync(devtoolsPath, content);
-    console.log('✓ Dev mode enabled');
+    console.info('✓ Dev mode enabled');
   }
 }
 

@@ -1,4 +1,4 @@
-(function() {
+((() => {
   'use strict';
 
   if (typeof chrome === 'undefined' || !chrome.storage) {
@@ -19,7 +19,7 @@
   }
 
   function removeHideCSS() {
-    if (styleElement && styleElement.parentNode) {
+    if (styleElement?.parentNode) {
       styleElement.parentNode.removeChild(styleElement);
       styleElement = null;
     }
@@ -40,4 +40,4 @@
       currentShowState ? removeHideCSS() : injectHideCSS();
     }
   });
-})();
+}))();
