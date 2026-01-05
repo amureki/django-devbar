@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/codingjoe/esupgrade
+    rev: 2025.9.0
+    hooks:
+      - id: esupgrade
+
