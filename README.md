@@ -47,9 +47,9 @@ All settings are optional. Configure via a `DEVBAR` dict in your Django settings
 
 ```python
 DEVBAR = {
-    'POSITION': 'bottom-right',     # bottom-right (default), bottom-left, top-right, top-left
-    'SHOW_BAR': None,               # follows DEBUG; set True/False to override
-    'ENABLE_DEVTOOLS_DATA': None,   # follows DEBUG; set True/False to override
+    "POSITION": "bottom-right",  # bottom-right (default), bottom-left, top-right, top-left
+    "SHOW_BAR": None,  # follows DEBUG; set True/False to override
+    "ENABLE_DEVTOOLS_DATA": None,  # follows DEBUG; set True/False to override
 }
 ```
 

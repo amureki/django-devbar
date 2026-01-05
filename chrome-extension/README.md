@@ -19,12 +19,13 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
    **About Permissions**: Chrome shows a broad permissions warning during install, but this extension only runs on `localhost` and `127.0.0.1` for local Django development. It cannot access other websites.
 
    **Option B - Development Mode**:
+
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable "Developer mode" (toggle in the top-right corner)
    - Click "Load unpacked"
    - Select the `chrome-extension` directory from this repository
 
-2. **Use the Extension**
+1. **Use the Extension**
 
    - Open Chrome DevTools (F12 or right-click → Inspect)
    - Navigate to the "Django DevBar" tab
@@ -45,7 +46,7 @@ npm run generate-icons  # Generate icon sizes from icon.svg
 ### Making Changes
 
 1. Edit the source files
-2. Run `npm run build` to update dist/
-3. Go to `chrome://extensions/`
-4. Click the refresh icon on the Django DevBar extension
-5. Reload DevTools
+1. Run `npm run build` to update dist/
+1. Go to `chrome://extensions/`
+1. Click the refresh icon on the Django DevBar extension
+1. Reload DevTools
