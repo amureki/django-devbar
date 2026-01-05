@@ -18,7 +18,7 @@ for (const size of sizes) {
     .resize(size, size)
     .png()
     .toFile(join(distPath, `icon${size}.png`));
-  console.log(`Generated icon${size}.png`);
+  console.info(`Generated icon${size}.png`);
 }
 
-console.log('Done!');
+console.info('Done!');
