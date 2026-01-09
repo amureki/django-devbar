@@ -100,142 +100,183 @@ def format_sql(sql):
     return mark_safe(highlighted)
 
 
-def truncate_sql(sql, max_length=150):
-    """Intelligently truncate long SQL queries while preserving structure.
+class SQLTruncator:
+    """Handles intelligent SQL query truncation while preserving the structure."""
 
-    Attempts to preserve the most important parts of the query:
-    - Extracts first column from SELECT clause
-    - Includes primary table from FROM clause
-    - Preserves as many JOINs as fit within max_length
-    - Respects max_length limit (default 150 chars)
+    def __init__(self, max_length=150):
+        self.max_length = max_length
 
-    Falls back to clause-boundary truncation if structure parsing fails.
+    def truncate(self, sql):
+        """Intelligently truncate long SQL queries while preserving the structure.
 
-    Args:
-        sql: SQL query string
-        max_length: Maximum length of truncated output (default 150)
+        Args:
+            sql: SQL query string
 
-    Returns:
-        Truncated SQL string with "..." at the end if shortened
-    """
-    if len(sql) <= max_length:
-        return sql
+        Returns:
+            Truncated SQL string with "..." at the end if shortened
+        """
+        if len(sql) <= self.max_length:
+            return sql
 
-    sql_upper = sql.upper()
+        sql_upper = sql.upper()
 
-    if sql_upper.startswith("SELECT"):
+        if sql_upper.startswith("SELECT"):
+            result = self._truncate_select(sql, sql_upper)
+            if result:
+                return result
+
+        return self._fallback_truncate(sql)
+
+    def _truncate_select(self, sql, sql_upper):
+        """Truncate SELECT queries while preserving columns and joins."""
         distinct_match = re.search(r"\bDISTINCT\b", sql_upper[:20])
         has_distinct = distinct_match is not None
         from_match = re.search(r"\bFROM\b", sql_upper)
-        if from_match:
-            from_pos = from_match.start()
 
-            if has_distinct:
-                distinct_end = distinct_match.end()
-                select_part = sql[distinct_end:from_pos].strip()
+        if not from_match:
+            return None
+
+        from_pos = from_match.start()
+
+        if has_distinct:
+            distinct_end = distinct_match.end()
+            select_part = sql[distinct_end:from_pos].strip()
+        else:
+            select_part = sql[6:from_pos].strip()
+
+        first_column = self._extract_first_column(select_part)
+        select_clause = "SELECT DISTINCT" if has_distinct else "SELECT"
+
+        from_part = sql[from_pos:]
+        table_match = re.search(r'FROM\s+(["\[]?)(\w+)', from_part, re.IGNORECASE)
+
+        if not table_match:
+            return None
+
+        table_name = table_match.group(2)
+        result = f"{select_clause} {first_column} FROM {table_name}"
+
+        # Add joins if they fit
+        join_result = self._add_joins_if_fit(result, from_part)
+        if join_result:
+            return join_result
+
+        return result if len(result) <= self.max_length else None
+
+    def _extract_first_column(self, select_part):
+        """Extract the first column from SELECT clause, handling quotes and parentheses."""
+        if not select_part.strip():
+            return "..."
+        columns = self._parse_columns(select_part)
+        return columns[0] + ", ..." if columns else "..."
+
+    def _parse_columns(self, select_part):
+        """Parse columns from SELECT clause, handling complex expressions."""
+        columns = []
+        in_quotes = False
+        quote_char = None
+        in_parens = False
+        paren_depth = 0
+        current_col = ""
+
+        for i, char in enumerate(select_part):
+            if char in ('"', "'") and (i == 0 or select_part[i - 1] != "\\"):
+                if not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char:
+                    in_quotes = False
+                    quote_char = None
+                current_col += char
+            elif in_quotes:
+                current_col += char
+            elif char == "(":
+                in_parens = True
+                paren_depth += 1
+                current_col += char
+            elif char == ")":
+                paren_depth -= 1
+                if paren_depth == 0:
+                    in_parens = False
+                current_col += char
+            elif char == "," and not in_parens and not in_quotes:
+                if current_col.strip():
+                    columns.append(current_col.strip())
+                    break
+                current_col = ""
+            elif char in " \t\n" and not in_parens and not in_quotes:
+                if current_col.strip():
+                    columns.append(current_col.strip())
+                current_col = ""
             else:
-                select_part = sql[6:from_pos].strip()
+                current_col += char
 
-            columns = []
-            in_quotes = False
-            quote_char = None
-            in_parens = False
-            paren_depth = 0
-            current_col = ""
+        if not columns and current_col.strip():
+            columns.append(current_col.strip())
 
-            for i, char in enumerate(select_part):
-                if char in ('"', "'") and (i == 0 or select_part[i - 1] != "\\"):
-                    if not in_quotes:
-                        in_quotes = True
-                        quote_char = char
-                    elif char == quote_char:
-                        in_quotes = False
-                        quote_char = None
-                    current_col += char
-                elif in_quotes:
-                    current_col += char
-                elif char == "(":
-                    in_parens = True
-                    paren_depth += 1
-                    current_col += char
-                elif char == ")":
-                    paren_depth -= 1
-                    if paren_depth == 0:
-                        in_parens = False
-                    current_col += char
-                elif char == "," and not in_parens and not in_quotes:
-                    if current_col.strip():
-                        columns.append(current_col.strip())
-                        break
-                    current_col = ""
-                elif char in " \t\n" and not in_parens and not in_quotes:
-                    if current_col.strip():
-                        columns.append(current_col.strip())
-                    current_col = ""
-                else:
-                    current_col += char
+        return columns
 
-            if not columns and current_col.strip():
-                columns.append(current_col.strip())
+    def _add_joins_if_fit(self, base_result, from_part):
+        """Add JOIN clauses to result if they fit within max_length."""
+        join_matches = re.finditer(
+            r'\b(LEFT\s+|RIGHT\s+|INNER\s+|OUTER\s+)?JOIN\s+(["\[]?)(\w+)',
+            from_part,
+            re.IGNORECASE,
+        )
 
-            if columns:
-                columns_str = columns[0] + ", ..."
+        result = base_result
+
+        for join_match in join_matches:
+            join_type = (join_match.group(1) or "").strip()
+            join_table = join_match.group(3)
+            new_result = (
+                f"{result} {join_type} JOIN {join_table}"
+                if join_type
+                else f"{result} JOIN {join_table}"
+            )
+            if len(new_result) <= self.max_length:
+                result = new_result
             else:
-                columns_str = "..."
+                break
 
-            select_clause = "SELECT DISTINCT" if has_distinct else "SELECT"
+        return result if len(result) <= self.max_length else None
 
-            from_part = sql[from_pos:]
-            table_match = re.search(r'FROM\s+(["\[]?)(\w+)', from_part, re.IGNORECASE)
-            if table_match:
-                table_name = table_match.group(2)
+    def _fallback_truncate(self, sql):
+        """Fallback truncation at clause boundaries or simple length limit."""
+        # First try simple length truncation
+        if len(sql) <= self.max_length:
+            return sql
 
-                join_matches = re.finditer(
-                    r'\b(LEFT\s+|RIGHT\s+|INNER\s+|OUTER\s+)?JOIN\s+(["\[]?)(\w+)',
-                    from_part,
-                    re.IGNORECASE,
-                )
+        # Try clause boundary truncation
+        clause_positions = [
+            (match.start(), match.group())
+            for match in SQL_CLAUSES_RE.finditer(sql[: self.max_length + 50])
+        ]
 
-                result = f"{select_clause} {columns_str} FROM {table_name}"
+        if clause_positions:
+            best_pos = self._find_best_truncate_position(clause_positions)
+            if best_pos > 0:
+                return sql[:best_pos].rstrip() + "..."
 
-                for join_match in join_matches:
-                    join_type = (join_match.group(1) or "").strip()
-                    join_table = join_match.group(3)
-                    new_result = (
-                        f"{result} {join_type} JOIN {join_table}"
-                        if join_type
-                        else f"{result} JOIN {join_table}"
-                    )
-                    if len(new_result) <= max_length:
-                        result = new_result
-                    else:
-                        break
+        # Final fallback: simple truncation
+        return sql[: self.max_length].rstrip() + "..."
 
-                if len(result) <= max_length:
-                    return result
-
-                result = f"{select_clause} {columns_str} FROM {table_name}"
-                if len(result) <= max_length:
-                    return result
-
-    clause_positions = [
-        (match.start(), match.group())
-        for match in SQL_CLAUSES_RE.finditer(sql[: max_length + 50])
-    ]
-
-    if clause_positions:
+    def _find_best_truncate_position(self, clause_positions):
+        """Find the best position to truncate based on clause boundaries."""
         best_pos = 0
         for pos, _ in clause_positions:
-            if max_length > pos > best_pos:
+            if self.max_length > pos > best_pos:
                 best_pos = pos
 
-        if best_pos > max_length - 30:
+        if best_pos > self.max_length - 30:
             best_pos = 0
 
-        if best_pos > 0:
-            return sql[:best_pos].rstrip() + "..."
+        return best_pos
 
-    return sql[:max_length].rstrip() + "..."
+
+def truncate_sql(sql, max_length=150):
+    truncator = SQLTruncator(max_length)
+    return truncator.truncate(sql)
 
 
 def tracking_wrapper(execute, sql, params, many, context):

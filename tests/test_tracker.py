@@ -1,4 +1,5 @@
 from django_devbar import tracker
+from django_devbar.tracker import SQLTruncator, truncate_sql
 
 
 class TestTracker:
@@ -87,3 +88,165 @@ class TestTracker:
         )
 
         assert len(tracker.get_stats()["duplicate_queries"]) == 1
+
+
+class TestSQLTruncator:
+    def test_short_queries_unchanged(self):
+        truncator = SQLTruncator(150)
+        short_sql = "SELECT * FROM users"
+        assert truncator.truncate(short_sql) == short_sql
+
+    def test_exact_length_queries_unchanged(self):
+        sql = "SELECT id, name, email FROM users WHERE active = 1"
+        truncator = SQLTruncator(len(sql))
+        assert truncator.truncate(sql) == sql
+
+    def test_simple_select_truncation(self):
+        long_sql = "SELECT " + ", ".join([f"col{i}" for i in range(20)]) + " FROM users"
+        result = truncate_sql(long_sql, 50)
+        assert "SELECT col0, ... FROM users" == result
+        assert len(result) <= 50
+
+    def test_select_with_distinct(self):
+        long_sql = (
+            "SELECT DISTINCT "
+            + ", ".join([f"col{i}" for i in range(10)])
+            + " FROM users"
+        )
+        result = truncate_sql(long_sql, 50)
+        assert result.startswith("SELECT DISTINCT")
+        assert "FROM users" in result
+        assert len(result) <= 50
+
+    def test_select_with_joins(self):
+        sql = "SELECT id, name FROM users JOIN profiles ON users.id = profiles.user_id JOIN roles ON users.role_id = roles.id"
+        result = truncate_sql(sql, 80)
+        assert "SELECT" in result and "FROM users" in result
+        assert "JOIN" in result
+        assert len(result) <= 80
+
+    def test_complex_column_expressions(self):
+        sql = "SELECT COUNT(DISTINCT CASE WHEN status = 'active' THEN id END), AVG(score) as avg_score FROM users"
+        result = truncate_sql(sql, 100)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 100
+
+    def test_quoted_columns(self):
+        sql = 'SELECT "user name", `email address`, COUNT(*) FROM "user table"'
+        result = truncate_sql(sql, 80)
+        assert "SELECT" in result and "FROM" in result
+        assert len(result) <= 80
+
+    def test_nested_function_calls(self):
+        sql = "SELECT COALESCE(MAX(CASE WHEN created_at > '2023-01-01' THEN id END), 0) as latest_id FROM users"
+        result = truncate_sql(sql, 100)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 100
+
+    def test_subquery_in_select(self):
+        sql = "SELECT id, (SELECT COUNT(*) FROM orders WHERE user_id = users.id) as order_count FROM users"
+        result = truncate_sql(sql, 100)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 100
+
+    def test_non_select_queries(self):
+        insert_sql = "INSERT INTO users (name, email) VALUES ('John', 'john@example.com'), ('Jane', 'jane@example.com')"
+        result = truncate_sql(insert_sql, 50)
+        assert result.endswith("...")
+        assert len(result) <= 55  # Allow some tolerance for fallback
+
+    def test_update_queries(self):
+        update_sql = "UPDATE users SET name = 'John Doe', email = 'john@example.com', updated_at = NOW() WHERE id = 1"
+        result = truncate_sql(update_sql, 80)
+        assert result.endswith("...")
+        assert len(result) <= 85  # Allow some tolerance for fallback
+
+    def test_clause_boundary_truncation(self):
+        sql = "SELECT id, name FROM users WHERE active = 1 AND created_at > '2023-01-01' ORDER BY name LIMIT 10"
+        result = truncate_sql(sql, 60)
+        # Should truncate at SELECT boundary since it fits
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 60
+
+    def test_empty_select_list(self):
+        sql = "SELECT FROM users"  # Invalid SQL but should handle gracefully
+        result = truncate_sql(sql, 50)
+        assert "SELECT" in result and "FROM users" in result
+
+    def test_very_long_single_column(self):
+        long_column = "COALESCE(MAX(CASE WHEN status = 'active' AND created_at > '2023-01-01' AND score > 50 THEN id END), 0) as latest_id"
+        sql = f"SELECT {long_column} FROM users"
+        result = truncate_sql(sql, 100)
+        # Should fallback to simple truncation for very long columns
+        assert "SELECT" in result
+        assert len(result) <= 105  # Allow some tolerance for fallback truncation
+
+    def test_multiple_joins_fitting(self):
+        sql = "SELECT id FROM users JOIN profiles ON users.id = profiles.user_id JOIN roles ON users.role_id = roles.id"
+        result = truncate_sql(sql, 120)
+        assert "JOIN profiles" in result
+        assert "JOIN roles" in result
+        assert len(result) <= 120
+
+    def test_joins_not_fitting(self):
+        sql = "SELECT id FROM users JOIN very_long_table_name_on_purpose ON users.id = very_long_table_name_on_purpose.user_id"
+        result = truncate_sql(sql, 80)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 80
+
+    def test_escape_sequences_in_quotes(self):
+        sql = "SELECT name FROM users WHERE bio LIKE 'John\\'s story %' AND status = 'active'"
+        result = truncate_sql(sql, 80)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 80
+
+
+class TestTruncateSqlFunction:
+    def test_function_delegation(self):
+        sql = "SELECT id, name FROM users WHERE active = 1"
+        result = truncate_sql(sql, 50)
+        assert "SELECT" in result
+        assert len(result) <= 50
+
+    def test_custom_max_length(self):
+        sql = "SELECT id, name, email, created_at FROM users"
+        result = truncate_sql(sql, 30)
+        assert len(result) <= 30
+        # Result should be truncated since SQL is longer than 30 chars
+
+
+def test_default_max_length():
+    long_sql = (
+        "SELECT "
+        + ", ".join([f"col{i}" for i in range(20)])
+        + " FROM some_very_long_table_name"
+    )
+    result = truncate_sql(long_sql)
+    assert len(result) <= 150
+
+
+class TestSQLTruncatorEdgeCases:
+    def test_malformed_sql(self):
+        malformed = "SELECT FROM WHERE JOIN"
+        result = truncate_sql(malformed, 50)
+        assert len(result) <= 50
+
+    def test_sql_with_comments(self):
+        sql = "SELECT id, name /* comment here */ FROM users WHERE active = 1"
+        result = truncate_sql(sql, 60)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 60
+
+    def test_sql_with_line_breaks(self):
+        sql = """SELECT id, name
+                 FROM users
+                 WHERE active = 1"""
+        result = truncate_sql(sql, 50)
+        assert "SELECT" in result and "FROM users" in result
+        assert len(result) <= 50
+
+    def test_unicode_characters(self):
+        sql = "SELECT 姓名, email FROM 用户 WHERE 状态 = '活跃'"
+        result = truncate_sql(sql, 50)
+        assert "SELECT" in result and "FROM" in result
+        assert len(result) <= 50

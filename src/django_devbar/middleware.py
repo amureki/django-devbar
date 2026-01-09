@@ -72,7 +72,7 @@ class DevBarMiddleware:
         if all_queries:
             processed_queries = [
                 {
-                    "s": q["sql"] if q["is_duplicate"] else truncate_sql(q["sql"]),
+                    "s": truncate_sql(q["sql"]),
                     "dur": q["duration"],
                     "dup": 1 if q["is_duplicate"] else 0,
                 }
