@@ -13,6 +13,7 @@ from .conf import (
     get_position,
     get_show_bar,
 )
+from .tracker import format_sql, truncate_sql
 
 BODY_CLOSE_RE = re.compile(rb"</body\s*>", re.IGNORECASE)
 
@@ -41,10 +42,10 @@ class DevBarMiddleware:
         stats = tracker.get_stats()
 
         db_time = stats["duration"]
-        python_time = max(0, total_time - db_time)
+        python_time = round(max(0, total_time - db_time), 2)
 
         stats["python_time"] = python_time
-        stats["total_time"] = total_time
+        stats["total_time"] = round(total_time, 2)
 
         if get_enable_devtools_data():
             self._add_devtools_data_header(response, stats)
@@ -57,14 +58,31 @@ class DevBarMiddleware:
         return response
 
     def _add_devtools_data_header(self, response, stats):
+        # Abbreviated keys used to minimize DevBar-Data header size
         extension_data = {
-            "count": stats["count"],
-            "db_time": stats["duration"],
-            "app_time": stats["python_time"],
-            "total_time": stats["total_time"],
+            "c": stats["count"],
+            "db": round(stats["duration"], 2),
+            "app": stats["python_time"],
+            "full": stats["total_time"],
         }
-        if stats.get("duplicate_queries"):
-            extension_data["duplicates"] = stats["duplicate_queries"]
+
+        all_queries = stats.get("queries", [])
+        duplicates = stats.get("duplicate_queries", [])
+
+        if all_queries:
+            processed_queries = [
+                {
+                    "s": q["sql"] if q["is_duplicate"] else truncate_sql(q["sql"]),
+                    "dur": q["duration"],
+                    "dup": 1 if q["is_duplicate"] else 0,
+                }
+                for q in all_queries
+            ]
+            extension_data["q"] = processed_queries
+
+        if duplicates:
+            marked_duplicates = [{**d, "dup": 1} for d in duplicates]
+            extension_data["dup"] = marked_duplicates
 
         response["DevBar-Data"] = json.dumps(extension_data)
 
@@ -118,5 +136,8 @@ class DevBarMiddleware:
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
+        formatted_duplicates = [
+            {**dup, "sql": format_sql(dup["sql"])} for dup in duplicates
+        ]
         template = _template_engine.get_template("django_devbar/duplicates.html")
-        return template.render(Context({"duplicates": duplicates}))
+        return template.render(Context({"duplicates": formatted_duplicates}))
