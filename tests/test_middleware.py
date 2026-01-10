@@ -127,10 +127,14 @@ class TestMiddleware:
 
         assert "DevBar-Data" in response
         data = json.loads(response["DevBar-Data"])
-        assert data["count"] >= 0
-        assert data["db_time"] >= 0
-        assert data["app_time"] >= 0
-        assert data["total_time"] >= 0
+        assert "c" in data
+        assert data["c"] >= 0
+        assert "db" in data
+        assert data["db"] >= 0
+        assert "app" in data
+        assert data["app"] >= 0
+        assert "full" in data
+        assert data["full"] >= 0
 
     def test_devtools_data_header_hidden_when_disabled(self, rf, settings):
         settings.DEVBAR = {"ENABLE_DEVTOOLS_DATA": False}
@@ -156,9 +160,10 @@ class TestMiddleware:
                 "count": 3,
                 "duration": 10.0,
                 "duplicate_queries": [
-                    {"sql": "SELECT * FROM foo", "params": "(1,)", "duration": 5.0},
-                    {"sql": "SELECT * FROM bar", "params": "(2,)", "duration": 3.0},
+                    {"sql": "SELECT * FROM foo", "duration": 5.0},
+                    {"sql": "SELECT * FROM bar", "duration": 3.0},
                 ],
+                "queries": [],
             },
         )
 
@@ -172,7 +177,8 @@ class TestMiddleware:
         response = middleware(request)
 
         data = json.loads(response["DevBar-Data"])
-        assert len(data["duplicates"]) == 2
+        assert "dup" in data
+        assert len(data["dup"]) == 2
 
     def test_server_timing_header_always_present(self, rf, monkeypatch):
         monkeypatch.setattr(

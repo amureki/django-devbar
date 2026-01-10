@@ -48,6 +48,12 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function formatSql(sql) {
+  const escaped = escapeHtml(sql);
+  const keywordRegex = /\b(SELECT|FROM|WHERE|JOIN|LEFT JOIN|RIGHT JOIN|INNER JOIN|OUTER JOIN|ON|AND|OR|ORDER BY|GROUP BY|HAVING|LIMIT|OFFSET|INSERT INTO|VALUES|UPDATE|SET|DELETE|CREATE TABLE|ALTER TABLE|DROP TABLE|DISTINCT|COUNT|SUM|AVG|MAX|MIN|UNION|EXISTS|IN|IS NULL|IS NOT NULL|LIKE|BETWEEN|CASE|WHEN|THEN|ELSE|END|ASC|DESC|AS|WITH|RECURSIVE)\b/gi;
+  return escaped.replace(keywordRegex, (match) => `<span class="sql-keyword">${match}</span>`);
+}
+
 function getPathFromUrl(url) {
   try {
     const parsed = new URL(url);
@@ -152,6 +158,55 @@ function getRequestType(req) {
   return { class: 'type-xhr', label: 'XHR' };
 }
 
+function renderWaterfallChart(queries) {
+  if (!Array.isArray(queries) || queries.length === 0) return '';
+
+  let cumulativeTime = 0;
+  const queriesWithStartTime = queries.map(q => {
+    const startTime = cumulativeTime;
+    cumulativeTime += q.dur ?? 0;
+    return { ...q, start_time: startTime };
+  });
+
+  const maxEndTime = cumulativeTime;
+
+  const gridInterval = maxEndTime > 100 ? 20 : maxEndTime > 50 ? 10 : 5;
+  const gridLines = [];
+  for (let t = 0; t <= maxEndTime; t += gridInterval) {
+    const position = (t / maxEndTime) * 100;
+    gridLines.push(`
+      <div class="waterfall-grid-line" style="left: ${position}%"></div>
+      <div class="waterfall-grid-label" style="left: ${position}%">${t}ms</div>
+    `);
+  }
+
+  return `<div class="waterfall-grid-lines">${gridLines.join('')}</div>
+    ${queriesWithStartTime.map((query, idx) => {
+      const duration = query.dur ?? 0;
+      const startTime = query.start_time ?? 0;
+      const durationClass = duration > 50 ? 'slow' : duration > 10 ? 'medium' : 'fast';
+      const barWidth = maxEndTime > 0 ? (duration / maxEndTime) * 100 : 0;
+      const barLeft = maxEndTime > 0 ? (startTime / maxEndTime) * 100 : 0;
+
+      return `
+      <div class="query${query.dup ? ' duplicate' : ''}" data-idx="${idx}">
+        <div class="query-header">
+          <div class="query-summary">
+            <code>${formatSql(query.s)}</code>
+          </div>
+          <span class="query-time">${duration.toFixed(1)}ms</span>
+        </div>
+        <div class="waterfall-row">
+          <span class="waterfall-start">${startTime.toFixed(1)}ms</span>
+          <div class="waterfall-chart">
+            <div class="timing-bar ${durationClass}" style="width: ${barWidth}%; margin-left: ${barLeft}%"></div>
+          </div>
+          <span class="waterfall-end">${(startTime + duration).toFixed(1)}ms</span>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
 function renderEmptyState() {
   const app = document.getElementById('app');
   const isLocalDomain = pageUrl && (
@@ -211,18 +266,18 @@ function renderUI() {
         <a href="${escapeHtml(url)}" target="_blank" class="url-link" title="Open in new tab" aria-label="Open request URL in new tab">↗</a>
       </div>
       <div class="metrics">
-        ${renderMetric('queries', data.count ?? 0)}
-        ${renderMetric('db', formatMs(data.db_time), 'ms')}
-        ${renderMetric('app', formatMs(data.app_time), 'ms')}
-        ${data.duplicates?.length ? `<span class="dup-warn">⚠ ${data.duplicates.length} dup</span>` : ''}
+        ${renderMetric('queries', data.c ?? 0)}
+        ${renderMetric('db', formatMs(data.db), 'ms')}
+        ${renderMetric('app', formatMs(data.app), 'ms')}
+        ${data.dup?.length ? `<span class="dup-warn">⚠ ${data.dup.length} dup</span>` : ''}
         <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
       </div>
     </div>`;
 
-  if (data.duplicates?.length > 0) {
-    html += `<div class="dups">${data.duplicates.map(dup =>
-      `<div class="dup"><code>${escapeHtml(dup.sql)}</code> <span class="dup-time">${(dup.duration ?? 0).toFixed(1)}ms</span></div>`
-    ).join('')}</div>`;
+  if (Array.isArray(data.q) && data.q.length > 0) {
+    html += `<div class="queries"><div class="waterfall-container">
+      ${renderWaterfallChart(data.q)}
+    </div></div>`;
   }
 
   const hasPageOrDoc = requestHistory.some(r => r.isMainPage || r.isDocument);
@@ -249,10 +304,10 @@ function renderUI() {
             <a href="${escapeHtml(req.url)}" target="_blank" class="url-link" title="Open in new tab" aria-label="Open request URL in new tab">↗</a>
           </div>
           <div class="hist-stats">
-            ${renderMetric('queries', req.data.count ?? 0)}
-            ${renderMetric('db', formatMs(req.data.db_time), 'ms')}
-            ${renderMetric('app', formatMs(req.data.app_time), 'ms')}
-            ${req.data.duplicates?.length ? `<span class="dup-warn">⚠</span>` : ''}
+            ${renderMetric('queries', req.data.c ?? 0)}
+            ${renderMetric('db', formatMs(req.data.db), 'ms')}
+            ${renderMetric('app', formatMs(req.data.app), 'ms')}
+            ${req.data.dup?.length ? `<span class="dup-warn">⚠</span>` : ''}
             <span class="metric-label">${formatTime(req.timestamp)}</span>
           </div>
         </div>`;
