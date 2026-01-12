@@ -75,6 +75,7 @@ class DevBarMiddleware:
                     "s": truncate_sql(q["sql"]),
                     "dur": q["duration"],
                     "dup": 1 if q["is_duplicate"] else 0,
+                    "sim": 1 if q.get("is_similar") else 0,
                 }
                 for q in all_queries
             ]
@@ -113,6 +114,7 @@ class DevBarMiddleware:
         duplicates_html = self._build_duplicates_html(
             stats.get("duplicate_queries", [])
         )
+        similar_html = self._build_similar_html(stats.get("similar_queries", []))
 
         template = _template_engine.get_template("django_devbar/devbar.html")
         html = template.render(
@@ -123,6 +125,7 @@ class DevBarMiddleware:
                     "app_time": stats["python_time"],
                     "query_count": stats["count"],
                     "duplicates_html": duplicates_html,
+                    "similar_html": similar_html,
                 }
             )
         )
@@ -141,3 +144,15 @@ class DevBarMiddleware:
         ]
         template = _template_engine.get_template("django_devbar/duplicates.html")
         return template.render(Context({"duplicates": formatted_duplicates}))
+
+    def _build_similar_html(self, similar):
+        if not similar:
+            return ""
+        seen_sqls = set()
+        unique_similar = []
+        for q in similar:
+            if q["sql"] not in seen_sqls:
+                seen_sqls.add(q["sql"])
+                unique_similar.append({**q, "sql": format_sql(q["sql"])})
+        template = _template_engine.get_template("django_devbar/similar.html")
+        return template.render(Context({"similar": unique_similar}))

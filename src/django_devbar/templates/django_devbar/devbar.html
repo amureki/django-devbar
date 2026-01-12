@@ -15,6 +15,8 @@
 }
 #django-devbar.level-warn { border-left: 3px solid #f59e0b; }
 #django-devbar.has-duplicates { border-left: 3px solid #f59e0b; }
+#django-devbar.has-similar { border-left: 3px solid #3b82f6; }
+#django-devbar.has-duplicates.has-similar { border-left: 3px solid #f59e0b; }
 #django-devbar span { opacity: 0.7; }
 #django-devbar strong { opacity: 1; font-weight: 600; }
 #django-devbar details { display: inline; position: relative; }
@@ -84,10 +86,71 @@
     line-height: 1.5;
     font-size: 10px;
 }
+#django-devbar .sim-list details {
+    display: block;
+    margin: 0 0 6px 0;
+    font-size: 11px;
+    color: #f5f5f5;
+}
+#django-devbar .sim-list details:last-child { margin-bottom: 0; }
+#django-devbar .sim-list summary {
+    all: revert;
+    cursor: pointer;
+    list-style: none;
+    padding: 6px 8px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 3px;
+    border-left: 2px solid #3b82f6;
+    transition: background 0.15s ease;
+}
+#django-devbar .sim-list summary:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+#django-devbar .sim-list summary code {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 420px;
+    vertical-align: bottom;
+}
+#django-devbar .sim-list summary::before {
+    content: '▶ ';
+    display: inline-block;
+    transition: transform 0.15s ease;
+    color: #3b82f6;
+    font-size: 8px;
+    margin-right: 6px;
+}
+#django-devbar .sim-list details[open] > summary::before {
+    transform: rotate(90deg);
+}
+#django-devbar .sim-list code {
+    all: revert;
+    color: #3b82f6; font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    overflow-wrap: break-word;
+}
+#django-devbar .sim-list details[open] > code {
+    display: block;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    margin-top: 6px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    font-size: 10px;
+}
+#django-devbar details[open] > .sim-list {
+    position: absolute; bottom: 100%; right: -8px; margin-bottom: 8px;
+    background: rgba(20, 20, 20, 0.92); border-radius: 4px; padding: 6px;
+    width: min(500px, 90vw); max-height: 200px; overflow-y: auto; overflow-x: hidden;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
+}
 @media (max-width: 640px) { #django-devbar { display: none; } }
 </style>
-<div id="django-devbar"{% if duplicates_html %} class="has-duplicates"{% endif %}>
+<div id="django-devbar" class="{% if duplicates_html %}has-duplicates{% endif %}{% if similar_html %} has-similar{% endif %}">
 <span>queries</span> <strong>{{ query_count }}</strong> <span>·</span>
 <span>db</span> <strong>{{ db_time|floatformat:0 }}ms</strong> <span>·</span>
-<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}
+<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}{{ similar_html|safe }}
 </div>

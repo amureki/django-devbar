@@ -188,8 +188,9 @@ function renderWaterfallChart(queries) {
       const barWidth = maxEndTime > 0 ? (duration / maxEndTime) * 100 : 0;
       const barLeft = maxEndTime > 0 ? (startTime / maxEndTime) * 100 : 0;
 
+      const queryClass = query.dup ? ' duplicate' : query.sim ? ' similar' : '';
       return `
-      <div class="query${query.dup ? ' duplicate' : ''}" data-idx="${idx}">
+      <div class="query${queryClass}" data-idx="${idx}">
         <div class="query-header">
           <div class="query-summary">
             <code>${formatSql(query.s)}</code>
@@ -270,6 +271,7 @@ function renderUI() {
         ${renderMetric('db', formatMs(data.db), 'ms')}
         ${renderMetric('app', formatMs(data.app), 'ms')}
         ${data.dup?.length ? `<span class="dup-warn">⚠ ${data.dup.length} dup</span>` : ''}
+        ${(() => { const simCount = data.q?.filter(q => q.sim && !q.dup).length ?? 0; return simCount ? `<span class="sim-warn">≈ ${simCount} sim</span>` : ''; })()}
         <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
       </div>
     </div>`;
@@ -308,6 +310,7 @@ function renderUI() {
             ${renderMetric('db', formatMs(req.data.db), 'ms')}
             ${renderMetric('app', formatMs(req.data.app), 'ms')}
             ${req.data.dup?.length ? `<span class="dup-warn">⚠</span>` : ''}
+            ${req.data.q?.some(q => q.sim && !q.dup) ? `<span class="sim-warn">≈</span>` : ''}
             <span class="metric-label">${formatTime(req.timestamp)}</span>
           </div>
         </div>`;

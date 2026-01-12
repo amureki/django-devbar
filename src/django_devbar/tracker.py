@@ -32,13 +32,21 @@ def get_stats():
     duplicate_sqls = {d["sql"] for d in duplicate_queries}
 
     queries = _query_log.get()
+    seen = _seen_queries.get()
+
+    similar_sqls = {sql for sql, param_hashes in seen.items() if len(param_hashes) > 1}
+
     for q in queries:
         q["is_duplicate"] = q["sql"] in duplicate_sqls
+        q["is_similar"] = q["sql"] in similar_sqls
+
+    similar_queries = [q for q in queries if q["is_similar"] and not q["is_duplicate"]]
 
     return {
         "count": _query_count.get(),
         "duration": _query_duration.get(),
         "duplicate_queries": duplicate_queries,
+        "similar_queries": similar_queries,
         "queries": queries,
     }
 
