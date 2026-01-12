@@ -14,30 +14,51 @@ SQL_CLAUSES_RE = re.compile(
 
 _query_count: ContextVar[int] = ContextVar("query_count", default=0)
 _query_duration: ContextVar[float] = ContextVar("query_duration", default=0.0)
-_seen_queries: ContextVar[dict] = ContextVar("seen_queries", default={})
-_duplicate_log: ContextVar[list] = ContextVar("duplicate_log", default=[])
 _query_log: ContextVar[list] = ContextVar("query_log", default=[])
 
 
 def reset():
     _query_count.set(0)
     _query_duration.set(0.0)
-    _seen_queries.set({})
-    _duplicate_log.set([])
     _query_log.set([])
 
 
 def get_stats():
-    duplicate_queries = _duplicate_log.get()
     queries = _query_log.get()
-    seen = _seen_queries.get()
 
-    similar_sqls = {sql for sql, param_hashes in seen.items() if len(param_hashes) > 1}
+    # Count occurrences of each SQL template and each (SQL, params_hash) pair
+    sql_counts = {}
+    duplicate_keys = set()
+    for q in queries:
+        sql = q["sql"]
+        params_hash = q["params_hash"]
+        sql_counts[sql] = sql_counts.get(sql, 0) + 1
+        dup_key = (sql, params_hash)
+        if dup_key in duplicate_keys:
+            q["is_duplicate"] = True
+        else:
+            duplicate_keys.add(dup_key)
 
+    # Similar = SQL template appears 2+ times (matches DDT semantics)
+    similar_sqls = {sql for sql, count in sql_counts.items() if count > 1}
+
+    # Second pass: mark all queries in groups with 2+ members
+    dup_key_counts = {}
+    for q in queries:
+        dup_key = (q["sql"], q["params_hash"])
+        dup_key_counts[dup_key] = dup_key_counts.get(dup_key, 0) + 1
+
+    duplicate_keys_final = {k for k, count in dup_key_counts.items() if count > 1}
+
+    similar_queries = []
+    duplicate_queries = []
     for q in queries:
         q["is_similar"] = q["sql"] in similar_sqls
-
-    similar_queries = [q for q in queries if q["is_similar"]]
+        q["is_duplicate"] = (q["sql"], q["params_hash"]) in duplicate_keys_final
+        if q["is_similar"]:
+            similar_queries.append(q)
+        if q["is_duplicate"]:
+            duplicate_queries.append(q)
 
     return {
         "count": _query_count.get(),
@@ -59,29 +80,17 @@ def _record(sql, params, duration):
     _query_count.set(_query_count.get() + 1)
     _query_duration.set(_query_duration.get() + duration)
 
-    seen = _seen_queries.get()
     params_hash = _hash_params(params)
-
-    is_duplicate = sql in seen and params_hash in seen[sql]
 
     query_log = _query_log.get()
     query_log.append(
         {
             "sql": sql,
             "duration": round(duration, 2),
-            "is_duplicate": is_duplicate,
+            "params_hash": params_hash,
         }
     )
     _query_log.set(query_log)
-
-    if sql in seen:
-        if is_duplicate:
-            duplicates = _duplicate_log.get()
-            duplicates.append({"sql": sql, "duration": round(duration, 2)})
-        else:
-            seen[sql].add(params_hash)
-    else:
-        seen[sql] = {params_hash}
 
 
 def format_sql(sql):

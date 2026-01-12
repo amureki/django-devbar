@@ -75,6 +75,7 @@ class TestTracker:
         assert len(tracker.get_stats()["duplicate_queries"]) == 0
 
     def test_duplicates_detected_same_sql_same_params(self):
+        """DDT semantics: all occurrences of duplicated queries are counted."""
         tracker.reset()
 
         def mock_execute(*args):
@@ -87,7 +88,8 @@ class TestTracker:
             mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
         )
 
-        assert len(tracker.get_stats()["duplicate_queries"]) == 1
+        # Both occurrences are marked as duplicates (DDT semantics)
+        assert len(tracker.get_stats()["duplicate_queries"]) == 2
 
     def test_similar_queries_detected_same_sql_different_params(self):
         tracker.reset()
@@ -121,8 +123,8 @@ class TestTracker:
         assert stats["queries"][0]["is_similar"] is False
         assert stats["queries"][1]["is_similar"] is False
 
-    def test_duplicate_only_not_similar(self):
-        """Same SQL+params twice is duplicate but not similar (only one param set)."""
+    def test_duplicate_is_also_similar(self):
+        """DDT semantics: same SQL appearing 2+ times is both duplicate AND similar."""
         tracker.reset()
 
         def mock_execute(*args):
@@ -136,11 +138,13 @@ class TestTracker:
         )
 
         stats = tracker.get_stats()
-        assert len(stats["duplicate_queries"]) == 1
-        assert len(stats["similar_queries"]) == 0
+        # Both are duplicates (same SQL + same params)
+        assert len(stats["duplicate_queries"]) == 2
+        # Both are similar (same SQL template appears 2+ times)
+        assert len(stats["similar_queries"]) == 2
 
     def test_mixed_similar_and_duplicate(self):
-        """SQL with [1], [1], [2] - queries can be both similar and duplicate."""
+        """SQL with [1], [1], [2] - DDT semantics for mixed case."""
         tracker.reset()
 
         def mock_execute(*args):
@@ -157,17 +161,17 @@ class TestTracker:
         )
 
         stats = tracker.get_stats()
-        assert len(stats["duplicate_queries"]) == 1
-        # All 3 are similar (same SQL, multiple param sets)
+        # Both [1] queries are duplicates (same SQL + same params, appears 2+ times)
+        assert len(stats["duplicate_queries"]) == 2
+        # All 3 are similar (same SQL template appears 3 times)
         assert len(stats["similar_queries"]) == 3
-        # First [1] is similar but not duplicate (first occurrence)
+        # All queries are similar
         assert stats["queries"][0]["is_similar"] is True
-        assert stats["queries"][0]["is_duplicate"] is False
-        # Second [1] is both similar AND duplicate
         assert stats["queries"][1]["is_similar"] is True
-        assert stats["queries"][1]["is_duplicate"] is True
-        # The [2] query is similar but not duplicate
         assert stats["queries"][2]["is_similar"] is True
+        # Only the [1] queries are duplicates
+        assert stats["queries"][0]["is_duplicate"] is True
+        assert stats["queries"][1]["is_duplicate"] is True
         assert stats["queries"][2]["is_duplicate"] is False
 
 
