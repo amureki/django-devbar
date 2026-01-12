@@ -136,32 +136,29 @@ class DevBarMiddleware:
         response.content = content[:idx] + payload + content[idx:]
         response["Content-Length"] = str(len(response.content))
 
+    def _deduplicate_queries(self, queries):
+        seen_sqls = set()
+        unique = []
+        for q in queries:
+            if q["sql"] not in seen_sqls:
+                seen_sqls.add(q["sql"])
+                unique.append({**q, "sql": format_sql(q["sql"])})
+        return unique
+
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
-        total_count = len(duplicates)
-        seen_sqls = set()
-        unique_duplicates = []
-        for dup in duplicates:
-            if dup["sql"] not in seen_sqls:
-                seen_sqls.add(dup["sql"])
-                unique_duplicates.append({**dup, "sql": format_sql(dup["sql"])})
+        unique = self._deduplicate_queries(duplicates)
         template = _template_engine.get_template("django_devbar/duplicates.html")
         return template.render(
-            Context({"duplicates": unique_duplicates, "total_count": total_count})
+            Context({"duplicates": unique, "total_count": len(duplicates)})
         )
 
     def _build_similar_html(self, similar):
         if not similar:
             return ""
-        total_count = len(similar)
-        seen_sqls = set()
-        unique_similar = []
-        for q in similar:
-            if q["sql"] not in seen_sqls:
-                seen_sqls.add(q["sql"])
-                unique_similar.append({**q, "sql": format_sql(q["sql"])})
+        unique = self._deduplicate_queries(similar)
         template = _template_engine.get_template("django_devbar/similar.html")
         return template.render(
-            Context({"similar": unique_similar, "total_count": total_count})
+            Context({"similar": unique, "total_count": len(similar)})
         )

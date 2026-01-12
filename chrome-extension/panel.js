@@ -37,6 +37,7 @@ chrome.devtools.network.onNavigated.addListener((url) => {
 });
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
+const countSimilar = (queries) => queries?.filter(q => q.sim && !q.dup).length ?? 0;
 const formatTime = (date) => {
   const h = date.getHours(), m = date.getMinutes(), s = date.getSeconds(), ms = date.getMilliseconds();
   return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
@@ -271,7 +272,7 @@ function renderUI() {
         ${renderMetric('db', formatMs(data.db), 'ms')}
         ${renderMetric('app', formatMs(data.app), 'ms')}
         ${data.dup?.length ? `<span class="dup-warn">⚠ ${data.dup.length} dup</span>` : ''}
-        ${(() => { const simCount = data.q?.filter(q => q.sim && !q.dup).length ?? 0; return simCount ? `<span class="sim-warn">≈ ${simCount} sim</span>` : ''; })()}
+        ${countSimilar(data.q) ? `<span class="sim-warn">≈ ${countSimilar(data.q)} sim</span>` : ''}
         <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
       </div>
     </div>`;
@@ -310,7 +311,7 @@ function renderUI() {
             ${renderMetric('db', formatMs(req.data.db), 'ms')}
             ${renderMetric('app', formatMs(req.data.app), 'ms')}
             ${req.data.dup?.length ? `<span class="dup-warn">⚠</span>` : ''}
-            ${req.data.q?.some(q => q.sim && !q.dup) ? `<span class="sim-warn">≈</span>` : ''}
+            ${countSimilar(req.data.q) ? `<span class="sim-warn">≈</span>` : ''}
             <span class="metric-label">${formatTime(req.timestamp)}</span>
           </div>
         </div>`;

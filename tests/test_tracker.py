@@ -89,6 +89,55 @@ class TestTracker:
 
         assert len(tracker.get_stats()["duplicate_queries"]) == 1
 
+    def test_similar_queries_detected_same_sql_different_params(self):
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [2], False, {}
+        )
+
+        stats = tracker.get_stats()
+        assert len(stats["similar_queries"]) == 2
+        assert stats["queries"][0]["is_similar"] is True
+        assert stats["queries"][1]["is_similar"] is True
+
+    def test_no_similar_for_unique_queries(self):
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(mock_execute, "SELECT 1", [], False, {})
+        tracker.tracking_wrapper(mock_execute, "SELECT 2", [], False, {})
+
+        stats = tracker.get_stats()
+        assert len(stats["similar_queries"]) == 0
+        assert stats["queries"][0]["is_similar"] is False
+        assert stats["queries"][1]["is_similar"] is False
+
+    def test_similar_excludes_duplicates(self):
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+
+        stats = tracker.get_stats()
+        assert len(stats["duplicate_queries"]) == 1
+        assert len(stats["similar_queries"]) == 0
+
 
 class TestSQLTruncator:
     def test_short_queries_unchanged(self):
