@@ -121,7 +121,8 @@ class TestTracker:
         assert stats["queries"][0]["is_similar"] is False
         assert stats["queries"][1]["is_similar"] is False
 
-    def test_similar_excludes_duplicates(self):
+    def test_duplicate_only_not_similar(self):
+        """Same SQL+params twice is duplicate but not similar (only one param set)."""
         tracker.reset()
 
         def mock_execute(*args):
@@ -137,6 +138,37 @@ class TestTracker:
         stats = tracker.get_stats()
         assert len(stats["duplicate_queries"]) == 1
         assert len(stats["similar_queries"]) == 0
+
+    def test_mixed_similar_and_duplicate(self):
+        """SQL with [1], [1], [2] - queries can be both similar and duplicate."""
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [2], False, {}
+        )
+
+        stats = tracker.get_stats()
+        assert len(stats["duplicate_queries"]) == 1
+        # All 3 are similar (same SQL, multiple param sets)
+        assert len(stats["similar_queries"]) == 3
+        # First [1] is similar but not duplicate (first occurrence)
+        assert stats["queries"][0]["is_similar"] is True
+        assert stats["queries"][0]["is_duplicate"] is False
+        # Second [1] is both similar AND duplicate
+        assert stats["queries"][1]["is_similar"] is True
+        assert stats["queries"][1]["is_duplicate"] is True
+        # The [2] query is similar but not duplicate
+        assert stats["queries"][2]["is_similar"] is True
+        assert stats["queries"][2]["is_duplicate"] is False
 
 
 class TestSQLTruncator:

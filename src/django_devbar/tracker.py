@@ -29,18 +29,15 @@ def reset():
 
 def get_stats():
     duplicate_queries = _duplicate_log.get()
-    duplicate_sqls = {d["sql"] for d in duplicate_queries}
-
     queries = _query_log.get()
     seen = _seen_queries.get()
 
     similar_sqls = {sql for sql, param_hashes in seen.items() if len(param_hashes) > 1}
 
     for q in queries:
-        q["is_duplicate"] = q["sql"] in duplicate_sqls
         q["is_similar"] = q["sql"] in similar_sqls
 
-    similar_queries = [q for q in queries if q["is_similar"] and not q["is_duplicate"]]
+    similar_queries = [q for q in queries if q["is_similar"]]
 
     return {
         "count": _query_count.get(),
@@ -65,17 +62,20 @@ def _record(sql, params, duration):
     seen = _seen_queries.get()
     params_hash = _hash_params(params)
 
+    is_duplicate = sql in seen and params_hash in seen[sql]
+
     query_log = _query_log.get()
     query_log.append(
         {
             "sql": sql,
             "duration": round(duration, 2),
+            "is_duplicate": is_duplicate,
         }
     )
     _query_log.set(query_log)
 
     if sql in seen:
-        if params_hash in seen[sql]:
+        if is_duplicate:
             duplicates = _duplicate_log.get()
             duplicates.append({"sql": sql, "duration": round(duration, 2)})
         else:

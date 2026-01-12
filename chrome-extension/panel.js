@@ -37,7 +37,7 @@ chrome.devtools.network.onNavigated.addListener((url) => {
 });
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
-const countSimilar = (queries) => queries?.filter(q => q.sim && !q.dup).length ?? 0;
+const countSimilar = (queries) => queries?.filter(q => q.sim).length ?? 0;
 const formatTime = (date) => {
   const h = date.getHours(), m = date.getMinutes(), s = date.getSeconds(), ms = date.getMilliseconds();
   return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
