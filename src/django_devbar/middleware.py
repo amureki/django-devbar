@@ -139,15 +139,22 @@ class DevBarMiddleware:
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
-        formatted_duplicates = [
-            {**dup, "sql": format_sql(dup["sql"])} for dup in duplicates
-        ]
+        total_count = len(duplicates)
+        seen_sqls = set()
+        unique_duplicates = []
+        for dup in duplicates:
+            if dup["sql"] not in seen_sqls:
+                seen_sqls.add(dup["sql"])
+                unique_duplicates.append({**dup, "sql": format_sql(dup["sql"])})
         template = _template_engine.get_template("django_devbar/duplicates.html")
-        return template.render(Context({"duplicates": formatted_duplicates}))
+        return template.render(
+            Context({"duplicates": unique_duplicates, "total_count": total_count})
+        )
 
     def _build_similar_html(self, similar):
         if not similar:
             return ""
+        total_count = len(similar)
         seen_sqls = set()
         unique_similar = []
         for q in similar:
@@ -155,4 +162,6 @@ class DevBarMiddleware:
                 seen_sqls.add(q["sql"])
                 unique_similar.append({**q, "sql": format_sql(q["sql"])})
         template = _template_engine.get_template("django_devbar/similar.html")
-        return template.render(Context({"similar": unique_similar}))
+        return template.render(
+            Context({"similar": unique_similar, "total_count": total_count})
+        )
