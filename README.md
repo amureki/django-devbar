@@ -40,15 +40,20 @@ uv add --dev django-devbar
 pip install django-devbar
 ```
 
-Add to your middleware as early as possible, but after any middleware that encodes the response (e.g., `GZipMiddleware`):
+Add to your middleware early. For example:
 
 ```python
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django_devbar.DevBarMiddleware",
     # ...
 ]
+
+if DEBUG:
+    idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+    MIDDLEWARE.insert(idx + 1, "django_devbar.DevBarMiddleware")
 ```
+
+This keeps the middleware active only in development and avoids import errors if the package isn't installed in production.
 
 ## Configuration
 
