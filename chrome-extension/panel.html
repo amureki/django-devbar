@@ -25,10 +25,11 @@
     .metric { display: inline-flex; align-items: baseline; gap: 3px; }
     .metric-label { color: #888; font-size: 10px; }
     .metric-unit { color: #999; font-size: 10px; }
-    .dup-warn { color: #d97706; font-weight: 500; }
+    .dup-warn { color: #dc2626; font-weight: 500; }
+    .sim-warn { color: #ea580c; font-weight: 500; }
 
-    .queries { background: #f0f9ff; border-left: 2px solid #0ea5e9; padding: 6px 8px; margin-bottom: 8px; border-radius: 0 4px 4px 0; max-height: 400px; overflow-y: auto; }
-    .query { margin-bottom: 4px; font-size: 10px; }
+    .queries { padding: 6px 8px; margin-bottom: 8px; max-height: 400px; overflow-y: auto; }
+    .query { margin-bottom: 4px; font-size: 10px; padding-left: 8px; }
     .query:last-child { margin-bottom: 0; }
     .query code { color: #333; word-break: break-all; }
     .sql-keyword { color: #0ea5e9; font-weight: 500; }
@@ -36,7 +37,8 @@
     .query-summary { flex: 1; overflow: hidden; }
     .query-summary code { display: block; white-space: pre-wrap; word-wrap: break-word; }
     .query-time { color: #0ea5e9; font-weight: 500; margin-left: 4px; flex-shrink: 0; }
-    .query.duplicate { background: #fef3c7; }
+    .query.duplicate { background: #fef2f2; border-left: 2px solid #dc2626; padding-left: 6px; }
+    .query.similar { background: #fff7ed; border-left: 2px solid #ea580c; padding-left: 6px; }
     .waterfall-container { margin-top: 8px; padding: 8px 0; }
     .waterfall-row { display: flex; align-items: center; font-size: 10px; margin-top: 4px; padding: 4px 0; border-bottom: 1px solid #e5e7eb; }
     .waterfall-start { width: 55px; text-align: right; padding-right: 8px; color: #6b7280; font-size: 9px; flex-shrink: 0; }
@@ -76,10 +78,13 @@
       .request-method { background: #1a3a5c; color: #6db3f2; }
       .metric-label { color: #888; }
       .hist-stats { color: #999; }
-      .queries { background: #0c1929; border-left-color: #0ea5e9; }
+
       .query code { color: #e0e0e0; }
       .sql-keyword { color: #38bdf8; font-weight: 500; }
-      .query.duplicate { background: rgba(245, 158, 11, 0.2); }
+      .query.duplicate { background: rgba(220, 38, 38, 0.2); border-left: 2px solid #dc2626; padding-left: 6px; }
+      .query.similar { background: rgba(234, 88, 12, 0.2); border-left: 2px solid #fb923c; padding-left: 6px; }
+      .dup-warn { color: #f87171; }
+      .sim-warn { color: #fb923c; }
       .waterfall-row { border-bottom-color: #374151; }
       .waterfall-start, .waterfall-end { color: #9ca3af; }
       .waterfall-chart { background: #1f2937; }

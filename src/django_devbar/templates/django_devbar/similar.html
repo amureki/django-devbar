@@ -1,0 +1,1 @@
+{% if similar %}<details class="sim-details"><summary>({{ total_count }}s)</summary><div class="query-list sim-list">{% for q in similar %}<details><summary><code>{{ q.sql }}</code></summary><code>{{ q.sql }}</code></details>{% endfor %}</div></details>{% endif %}

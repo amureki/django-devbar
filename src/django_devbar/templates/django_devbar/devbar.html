@@ -13,44 +13,40 @@
     background: rgba(20, 20, 20, 0.92);
     color: #f5f5f5;
 }
-#django-devbar.level-warn { border-left: 3px solid #f59e0b; }
-#django-devbar.has-duplicates { border-left: 3px solid #f59e0b; }
+
 #django-devbar span { opacity: 0.7; }
 #django-devbar strong { opacity: 1; font-weight: 600; }
 #django-devbar details { display: inline; position: relative; }
 #django-devbar summary {
     all: revert;
-    color: #f59e0b; font-weight: 600; cursor: pointer; list-style: none;
+    font-weight: 600; cursor: pointer; list-style: none;
 }
+#django-devbar .dup-details > summary { color: #f87171; }
+#django-devbar .sim-details > summary { color: #fb923c; }
 #django-devbar summary::-webkit-details-marker { display: none; }
-#django-devbar details[open] > .dup-list {
+#django-devbar details[open] > .query-list {
     position: absolute; bottom: 100%; right: -8px; margin-bottom: 8px;
     background: rgba(20, 20, 20, 0.92); border-radius: 4px; padding: 6px;
     width: min(500px, 90vw); max-height: 200px; overflow-y: auto; overflow-x: hidden;
     box-sizing: border-box;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
 }
-#django-devbar .dup-list details {
+#django-devbar .query-list details {
     display: block;
     margin: 0 0 6px 0;
     font-size: 11px;
     color: #f5f5f5;
 }
-#django-devbar .dup-list details:last-child { margin-bottom: 0; }
-#django-devbar .dup-list summary {
+#django-devbar .query-list details:last-child { margin-bottom: 0; }
+#django-devbar .query-list summary {
     all: revert;
     cursor: pointer;
     list-style: none;
     padding: 6px 8px;
-    background: rgba(251, 191, 36, 0.1);
     border-radius: 3px;
-    border-left: 2px solid #fbbf24;
     transition: background 0.15s ease;
 }
-#django-devbar .dup-list summary:hover {
-    background: rgba(251, 191, 36, 0.2);
-}
-#django-devbar .dup-list summary code {
+#django-devbar .query-list summary code {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -58,23 +54,22 @@
     max-width: 420px;
     vertical-align: bottom;
 }
-#django-devbar .dup-list summary::before {
+#django-devbar .query-list summary::before {
     content: '▶ ';
     display: inline-block;
     transition: transform 0.15s ease;
-    color: #fbbf24;
     font-size: 8px;
     margin-right: 6px;
 }
-#django-devbar .dup-list details[open] > summary::before {
+#django-devbar .query-list details[open] > summary::before {
     transform: rotate(90deg);
 }
-#django-devbar .dup-list code {
+#django-devbar .query-list code {
     all: revert;
-    color: #fbbf24; font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
     overflow-wrap: break-word;
 }
-#django-devbar .dup-list details[open] > code {
+#django-devbar .query-list details[open] > code {
     display: block;
     padding: 8px;
     background: rgba(0, 0, 0, 0.3);
@@ -84,10 +79,16 @@
     line-height: 1.5;
     font-size: 10px;
 }
+#django-devbar .dup-list summary { background: rgba(220, 38, 38, 0.1); border-left: 2px solid #dc2626; }
+#django-devbar .dup-list summary:hover { background: rgba(220, 38, 38, 0.2); }
+#django-devbar .dup-list summary::before, #django-devbar .dup-list code { color: #f87171; }
+#django-devbar .sim-list summary { background: rgba(234, 88, 12, 0.1); border-left: 2px solid #ea580c; }
+#django-devbar .sim-list summary:hover { background: rgba(234, 88, 12, 0.2); }
+#django-devbar .sim-list summary::before, #django-devbar .sim-list code { color: #fb923c; }
 @media (max-width: 640px) { #django-devbar { display: none; } }
 </style>
-<div id="django-devbar"{% if duplicates_html %} class="has-duplicates"{% endif %}>
+<div id="django-devbar" class="{% if duplicates_html %}has-duplicates{% endif %}{% if similar_html %} has-similar{% endif %}">
 <span>queries</span> <strong>{{ query_count }}</strong> <span>·</span>
 <span>db</span> <strong>{{ db_time|floatformat:0 }}ms</strong> <span>·</span>
-<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}
+<span>app</span> <strong>{{ app_time|floatformat:0 }}ms</strong>{{ duplicates_html|safe }}{{ similar_html|safe }}
 </div>

@@ -75,6 +75,7 @@ class DevBarMiddleware:
                     "s": truncate_sql(q["sql"]),
                     "dur": q["duration"],
                     "dup": 1 if q["is_duplicate"] else 0,
+                    "sim": 1 if q.get("is_similar") else 0,
                 }
                 for q in all_queries
             ]
@@ -113,6 +114,7 @@ class DevBarMiddleware:
         duplicates_html = self._build_duplicates_html(
             stats.get("duplicate_queries", [])
         )
+        similar_html = self._build_similar_html(stats.get("similar_queries", []))
 
         template = _template_engine.get_template("django_devbar/devbar.html")
         html = template.render(
@@ -123,6 +125,7 @@ class DevBarMiddleware:
                     "app_time": stats["python_time"],
                     "query_count": stats["count"],
                     "duplicates_html": duplicates_html,
+                    "similar_html": similar_html,
                 }
             )
         )
@@ -133,11 +136,29 @@ class DevBarMiddleware:
         response.content = content[:idx] + payload + content[idx:]
         response["Content-Length"] = str(len(response.content))
 
+    def _deduplicate_queries(self, queries):
+        seen_sqls = set()
+        unique = []
+        for q in queries:
+            if q["sql"] not in seen_sqls:
+                seen_sqls.add(q["sql"])
+                unique.append({**q, "sql": format_sql(q["sql"])})
+        return unique
+
     def _build_duplicates_html(self, duplicates):
         if not duplicates:
             return ""
-        formatted_duplicates = [
-            {**dup, "sql": format_sql(dup["sql"])} for dup in duplicates
-        ]
+        unique = self._deduplicate_queries(duplicates)
         template = _template_engine.get_template("django_devbar/duplicates.html")
-        return template.render(Context({"duplicates": formatted_duplicates}))
+        return template.render(
+            Context({"duplicates": unique, "total_count": len(duplicates)})
+        )
+
+    def _build_similar_html(self, similar):
+        if not similar:
+            return ""
+        unique = self._deduplicate_queries(similar)
+        template = _template_engine.get_template("django_devbar/similar.html")
+        return template.render(
+            Context({"similar": unique, "total_count": len(similar)})
+        )

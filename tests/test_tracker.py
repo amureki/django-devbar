@@ -75,6 +75,7 @@ class TestTracker:
         assert len(tracker.get_stats()["duplicate_queries"]) == 0
 
     def test_duplicates_detected_same_sql_same_params(self):
+        """DDT semantics: all occurrences of duplicated queries are counted."""
         tracker.reset()
 
         def mock_execute(*args):
@@ -87,7 +88,91 @@ class TestTracker:
             mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
         )
 
-        assert len(tracker.get_stats()["duplicate_queries"]) == 1
+        # Both occurrences are marked as duplicates (DDT semantics)
+        assert len(tracker.get_stats()["duplicate_queries"]) == 2
+
+    def test_similar_queries_detected_same_sql_different_params(self):
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [2], False, {}
+        )
+
+        stats = tracker.get_stats()
+        assert len(stats["similar_queries"]) == 2
+        assert stats["queries"][0]["is_similar"] is True
+        assert stats["queries"][1]["is_similar"] is True
+
+    def test_no_similar_for_unique_queries(self):
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(mock_execute, "SELECT 1", [], False, {})
+        tracker.tracking_wrapper(mock_execute, "SELECT 2", [], False, {})
+
+        stats = tracker.get_stats()
+        assert len(stats["similar_queries"]) == 0
+        assert stats["queries"][0]["is_similar"] is False
+        assert stats["queries"][1]["is_similar"] is False
+
+    def test_duplicate_is_also_similar(self):
+        """DDT semantics: same SQL appearing 2+ times is both duplicate AND similar."""
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+
+        stats = tracker.get_stats()
+        # Both are duplicates (same SQL + same params)
+        assert len(stats["duplicate_queries"]) == 2
+        # Both are similar (same SQL template appears 2+ times)
+        assert len(stats["similar_queries"]) == 2
+
+    def test_mixed_similar_and_duplicate(self):
+        """SQL with [1], [1], [2] - DDT semantics for mixed case."""
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [1], False, {}
+        )
+        tracker.tracking_wrapper(
+            mock_execute, "SELECT * FROM t WHERE id=%s", [2], False, {}
+        )
+
+        stats = tracker.get_stats()
+        # Both [1] queries are duplicates (same SQL + same params, appears 2+ times)
+        assert len(stats["duplicate_queries"]) == 2
+        # All 3 are similar (same SQL template appears 3 times)
+        assert len(stats["similar_queries"]) == 3
+        # All queries are similar
+        assert stats["queries"][0]["is_similar"] is True
+        assert stats["queries"][1]["is_similar"] is True
+        assert stats["queries"][2]["is_similar"] is True
+        # Only the [1] queries are duplicates
+        assert stats["queries"][0]["is_duplicate"] is True
+        assert stats["queries"][1]["is_duplicate"] is True
+        assert stats["queries"][2]["is_duplicate"] is False
 
 
 class TestSQLTruncator:
