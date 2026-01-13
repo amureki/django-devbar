@@ -3,7 +3,8 @@
 > [!WARNING]
 > This package is experimental and may introduce breaking changes in minor versions.
 
-Lightweight performance devbar for Django. Shows DB query count, query duration, application time, and detects duplicate queries with visual severity indicators.
+Lightweight performance devbar for Django.
+Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
 
 ## Showcase
 
@@ -11,13 +12,13 @@ Normal operation – showing query count, duration, and application time:
 
 ![devbar example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example.svg)
 
-Duplicate queries detected – severity indicator and details shown:
+Similar and duplicate queries detected – severity indicators and details shown:
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
 [optional] Chrome extension - showing detailed metrics in DevTools panel:
 
-[![Chrome DevTools extension](https://github.com/user-attachments/assets/9bbc41b7-3d93-46e7-aef4-9330a862b8f0)](#chrome-extension)
+[![Chrome DevTools extension](https://github.com/user-attachments/assets/f53a4bb8-fba1-446c-8224-82eac47bd027)](#chrome-extension)
 
 ## Motivation
 
@@ -69,7 +70,7 @@ Django DevBar adds HTTP response headers with performance metrics:
 
 An additional header is included by default in DEBUG mode:
 
-- **DevBar-Data** - JSON header with comprehensive metrics including duplicate query details
+- **DevBar-Data** - JSON header with comprehensive metrics including similar and duplicate query details
 
 This is useful for:
 

@@ -1,11 +1,11 @@
 [project]
 name = "django-devbar"
-version = "0.5.0"
+version = "0.6.0"
 description = "Lightweight performance devbar for Django"
 readme = "README.md"
 license = "MIT"
 authors = [
-  { name = "amureki", email = "oss@amureki.com" },
+  { name = "amureki", email = "oss@amureki.me" },
 ]
 requires-python = ">=3.10"
 dependencies = ["django>=4.2"]
