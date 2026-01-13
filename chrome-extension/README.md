@@ -5,7 +5,7 @@ A Chrome DevTools extension for viewing Django DevBar performance metrics direct
 ## Features
 
 - **Real-time Metrics**: View DB time, app time, total time, and query count for each request
-- **Duplicate Query Detection**: See duplicate queries highlighted with details
+- **Similar & Duplicate Query Detection**: See similar and duplicate queries highlighted with details
 - **Request History**: Track the last 50 requests in your session
 - **Native DevTools UI**: Seamlessly integrated into Chrome DevTools
 
