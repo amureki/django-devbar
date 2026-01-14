@@ -85,7 +85,7 @@ def _record(sql, params, duration):
     query_log = _query_log.get()
     query_log.append(
         {
-            "sql": sql,
+            "sql": str(sql),
             "duration": round(duration, 2),
             "params_hash": params_hash,
         }
