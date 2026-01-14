@@ -2,6 +2,19 @@ from django_devbar import tracker
 from django_devbar.tracker import SQLTruncator, truncate_sql
 
 
+class UnhashableSQL:
+    """Mock for psycopg3's sql.Composed which is not hashable."""
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return self.value
+
+    def __hash__(self):
+        raise TypeError("unhashable type: 'Composed'")
+
+
 class TestTracker:
     def test_reset_clears_stats(self):
         tracker._query_count.set(5)
@@ -173,6 +186,21 @@ class TestTracker:
         assert stats["queries"][0]["is_duplicate"] is True
         assert stats["queries"][1]["is_duplicate"] is True
         assert stats["queries"][2]["is_duplicate"] is False
+
+    def test_unhashable_sql_object(self):
+        """Regression test for issue #27: psycopg3 Composed SQL objects are not hashable."""
+        tracker.reset()
+
+        def mock_execute(*args):
+            return "result"
+
+        composed_sql = UnhashableSQL("SELECT * FROM users WHERE id = %s")
+        tracker.tracking_wrapper(mock_execute, composed_sql, [1], False, {})
+        tracker.tracking_wrapper(mock_execute, composed_sql, [1], False, {})
+
+        # Should not raise TypeError: unhashable type
+        stats = tracker.get_stats()
+        assert stats["count"] == 2
 
 
 class TestSQLTruncator:
