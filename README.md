@@ -64,6 +64,8 @@ DEVBAR = {
     "POSITION": "bottom-right",  # bottom-right (default), bottom-left, top-right, top-left
     "SHOW_BAR": None,  # follows DEBUG; set True/False to override
     "ENABLE_DEVTOOLS_DATA": None,  # follows DEBUG; set True/False to override
+    "DEVTOOLS_HEADER_MAX_BYTES": 6144,  # max bytes for DevBar-Data header payload
+    "DEVTOOLS_MAX_QUERIES": None,  # optional hard cap for q/dup entries sent to DevTools
 }
 ```
 
@@ -76,6 +78,9 @@ Django DevBar adds HTTP response headers with performance metrics:
 An additional header is included by default in DEBUG mode:
 
 - **DevBar-Data** - JSON header with comprehensive metrics including similar and duplicate query details
+  - Query-level flags are embedded in `q` entries (`dup` and `sim`)
+  - Payload is automatically truncated to fit `DEVTOOLS_HEADER_MAX_BYTES`
+  - When truncated, response includes metadata keys: `tr`, `q_total`, `q_sent`
 
 This is useful for:
 

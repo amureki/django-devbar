@@ -38,6 +38,13 @@ chrome.devtools.network.onNavigated.addListener((url) => {
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
 const countSimilar = (queries) => queries?.filter(q => q.sim).length ?? 0;
+const countDuplicates = (queries) => queries?.filter(q => q.dup).length ?? 0;
+const getTruncationInfo = (data) => {
+  if (!data?.tr) return '';
+  const sent = data.q_sent ?? 0;
+  const total = data.q_total ?? '?';
+  return `Showing ${sent} of ${total} queries. Increase DEVBAR['DEVTOOLS_HEADER_MAX_BYTES'] to see more.`;
+};
 const formatTime = (date) => {
   const h = date.getHours(), m = date.getMinutes(), s = date.getSeconds(), ms = date.getMilliseconds();
   return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
@@ -258,6 +265,9 @@ function renderUI() {
 
   const { data, method, url } = currentRequest;
   const type = getRequestType(currentRequest);
+  const currentDuplicateCount = countDuplicates(data.q);
+  const currentSimilarCount = countSimilar(data.q);
+  const truncationInfo = getTruncationInfo(data);
 
   let html = `
     <div class="current">
@@ -271,8 +281,8 @@ function renderUI() {
         ${renderMetric('queries', data.c ?? 0)}
         ${renderMetric('db', formatMs(data.db), 'ms')}
         ${renderMetric('app', formatMs(data.app), 'ms')}
-        ${data.dup?.length ? `<span class="dup-warn">⚠ ${data.dup.length} dup</span>` : ''}
-        ${countSimilar(data.q) ? `<span class="sim-warn">≈ ${countSimilar(data.q)} sim</span>` : ''}
+        ${currentDuplicateCount ? `<span class="dup-warn">⚠ ${currentDuplicateCount} dup</span>` : ''}
+        ${currentSimilarCount ? `<span class="sim-warn">≈ ${currentSimilarCount} sim</span>` : ''}
         <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
       </div>
     </div>`;
@@ -280,7 +290,11 @@ function renderUI() {
   if (Array.isArray(data.q) && data.q.length > 0) {
     html += `<div class="queries"><div class="waterfall-container">
       ${renderWaterfallChart(data.q)}
-    </div></div>`;
+    </div>
+    ${truncationInfo ? `<div class="trunc-note">${escapeHtml(truncationInfo)}</div>` : ''}
+    </div>`;
+  } else if (truncationInfo) {
+    html += `<div class="queries"><div class="trunc-note">${escapeHtml(truncationInfo)}</div></div>`;
   }
 
   const hasPageOrDoc = requestHistory.some(r => r.isMainPage || r.isDocument);
@@ -299,6 +313,8 @@ function renderUI() {
     html += `<div class="history"><div class="history-title">${sectionTitle} (${otherRequests.length})</div>
       ${otherRequests.map(req => {
         const t = getRequestType(req);
+        const duplicateCount = countDuplicates(req.data.q);
+        const similarCount = countSimilar(req.data.q);
         return `<div class="hist-row">
           <div class="hist-left">
             <span class="request-type ${t.class}">${t.label}</span>
@@ -310,8 +326,8 @@ function renderUI() {
             ${renderMetric('queries', req.data.c ?? 0)}
             ${renderMetric('db', formatMs(req.data.db), 'ms')}
             ${renderMetric('app', formatMs(req.data.app), 'ms')}
-            ${req.data.dup?.length ? `<span class="dup-warn">⚠</span>` : ''}
-            ${countSimilar(req.data.q) ? `<span class="sim-warn">≈</span>` : ''}
+            ${duplicateCount ? `<span class="dup-warn">⚠</span>` : ''}
+            ${similarCount ? `<span class="sim-warn">≈</span>` : ''}
             <span class="metric-label">${formatTime(req.timestamp)}</span>
           </div>
         </div>`;

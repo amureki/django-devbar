@@ -13,6 +13,8 @@ def get_config():
         "POSITION": "bottom-right",
         "SHOW_BAR": None,  # None = use settings.DEBUG
         "ENABLE_DEVTOOLS_DATA": None,  # None = use settings.DEBUG
+        "DEVTOOLS_HEADER_MAX_BYTES": 6144,
+        "DEVTOOLS_MAX_QUERIES": None,
         **getattr(settings, "DEVBAR", {}),
     }
 
@@ -33,3 +35,13 @@ def get_enable_devtools_data():
     config = get_config()
     enable = config["ENABLE_DEVTOOLS_DATA"]
     return settings.DEBUG if enable is None else enable
+
+
+def get_devtools_header_max_bytes():
+    config = get_config()
+    return config["DEVTOOLS_HEADER_MAX_BYTES"]
+
+
+def get_devtools_max_queries():
+    config = get_config()
+    return config["DEVTOOLS_MAX_QUERIES"]

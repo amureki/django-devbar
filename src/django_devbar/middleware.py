@@ -9,6 +9,8 @@ from django.template import Context, Engine
 
 from . import tracker
 from .conf import (
+    get_devtools_header_max_bytes,
+    get_devtools_max_queries,
     get_enable_devtools_data,
     get_position,
     get_show_bar,
@@ -58,34 +60,104 @@ class DevBarMiddleware:
         return response
 
     def _add_devtools_data_header(self, response, stats):
-        # Abbreviated keys used to minimize DevBar-Data header size
-        extension_data = {
+        max_bytes = get_devtools_header_max_bytes()
+        if max_bytes <= 0:
+            return
+
+        summary_data = {
             "c": stats["count"],
             "db": round(stats["duration"], 2),
             "app": stats["python_time"],
             "full": stats["total_time"],
         }
+        if self._json_size(summary_data) > max_bytes:
+            return
 
-        all_queries = stats.get("queries", [])
-        duplicates = stats.get("duplicate_queries", [])
+        raw_queries = stats.get("queries", [])
+        total_query_count = len(raw_queries)
+        max_queries = get_devtools_max_queries()
+        all_queries = (
+            raw_queries[:max_queries] if max_queries is not None else raw_queries
+        )
+        processed_queries = [
+            {
+                "s": truncate_sql(q["sql"]),
+                "dur": q["duration"],
+                "dup": 1 if q["is_duplicate"] else 0,
+                "sim": 1 if q.get("is_similar") else 0,
+            }
+            for q in all_queries
+        ]
+        is_truncated = len(processed_queries) < total_query_count
 
-        if all_queries:
-            processed_queries = [
-                {
-                    "s": truncate_sql(q["sql"]),
-                    "dur": q["duration"],
-                    "dup": 1 if q["is_duplicate"] else 0,
-                    "sim": 1 if q.get("is_similar") else 0,
-                }
-                for q in all_queries
-            ]
-            extension_data["q"] = processed_queries
+        full_payload = summary_data.copy()
+        if processed_queries:
+            full_payload["q"] = processed_queries
+        if self._json_size(full_payload) <= max_bytes and not is_truncated:
+            response["DevBar-Data"] = self._serialize_payload(full_payload)
+            return
 
-        if duplicates:
-            marked_duplicates = [{**d, "dup": 1} for d in duplicates]
-            extension_data["dup"] = marked_duplicates
+        best_count = self._max_queries_that_fit(
+            summary_data,
+            processed_queries,
+            max_bytes,
+            total_query_count,
+        )
+        payload = self._build_truncated_payload(
+            summary_data,
+            processed_queries,
+            best_count,
+            total_query_count,
+        )
 
-        response["DevBar-Data"] = json.dumps(extension_data)
+        if self._json_size(payload) <= max_bytes:
+            response["DevBar-Data"] = self._serialize_payload(payload)
+        else:
+            response["DevBar-Data"] = self._serialize_payload(summary_data)
+
+    def _json_size(self, data):
+        return len(self._serialize_payload(data).encode("utf-8"))
+
+    def _serialize_payload(self, payload):
+        return json.dumps(payload, separators=(",", ":"))
+
+    def _build_truncated_payload(
+        self,
+        summary_data,
+        processed_queries,
+        query_count,
+        queries_total,
+    ):
+        payload = summary_data.copy()
+        if query_count:
+            payload["q"] = processed_queries[:query_count]
+        payload["tr"] = 1
+        payload["q_total"] = queries_total
+        payload["q_sent"] = query_count
+        return payload
+
+    def _max_queries_that_fit(
+        self,
+        summary_data,
+        processed_queries,
+        max_bytes,
+        queries_total,
+    ):
+        low = 0
+        high = len(processed_queries)
+        while low < high:
+            mid = (low + high + 1) // 2
+            payload = self._build_truncated_payload(
+                summary_data,
+                processed_queries,
+                mid,
+                queries_total,
+            )
+            if self._json_size(payload) <= max_bytes:
+                low = mid
+            else:
+                high = mid - 1
+        return low
 
     def _add_server_timing_header(self, response, stats):
         parts = [

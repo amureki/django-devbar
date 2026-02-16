@@ -150,7 +150,7 @@ class TestMiddleware:
 
         assert "DevBar-Data" not in response
 
-    def test_duplicate_data_in_json_header(self, rf, monkeypatch, settings):
+    def test_duplicate_flags_in_query_data(self, rf, monkeypatch, settings):
         settings.DEVBAR = {"ENABLE_DEVTOOLS_DATA": True}
 
         monkeypatch.setattr(
@@ -163,7 +163,26 @@ class TestMiddleware:
                     {"sql": "SELECT * FROM foo", "duration": 5.0},
                     {"sql": "SELECT * FROM bar", "duration": 3.0},
                 ],
-                "queries": [],
+                "queries": [
+                    {
+                        "sql": "SELECT * FROM foo",
+                        "duration": 5.0,
+                        "is_duplicate": 1,
+                        "is_similar": 1,
+                    },
+                    {
+                        "sql": "SELECT * FROM bar",
+                        "duration": 3.0,
+                        "is_duplicate": 1,
+                        "is_similar": 1,
+                    },
+                    {
+                        "sql": "SELECT * FROM baz",
+                        "duration": 2.0,
+                        "is_duplicate": 0,
+                        "is_similar": 0,
+                    },
+                ],
             },
         )
 
@@ -177,8 +196,9 @@ class TestMiddleware:
         response = middleware(request)
 
         data = json.loads(response["DevBar-Data"])
-        assert "dup" in data
-        assert len(data["dup"]) == 2
+        assert "dup" not in data
+        assert len(data["q"]) == 3
+        assert sum(q["dup"] for q in data["q"]) == 2
 
     def test_server_timing_header_always_present(self, rf, monkeypatch):
         monkeypatch.setattr(
@@ -205,3 +225,107 @@ class TestMiddleware:
         assert "db;dur=12.50" in header
         assert "app;dur=" in header
         assert "total;dur=" in header
+
+    def test_devtools_data_header_truncated_by_max_bytes(
+        self, rf, monkeypatch, settings
+    ):
+        settings.DEVBAR = {
+            "ENABLE_DEVTOOLS_DATA": True,
+            "DEVTOOLS_HEADER_MAX_BYTES": 350,
+        }
+
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 20,
+                "duration": 12.5,
+                "queries": [
+                    {
+                        "sql": f"SELECT * FROM table WHERE id = {i} AND value = 'long-value-{i}'",
+                        "duration": 0.5,
+                        "is_duplicate": i % 2 == 0,
+                        "is_similar": 1,
+                    }
+                    for i in range(20)
+                ],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        response = middleware(rf.get("/"))
+        data = json.loads(response["DevBar-Data"])
+
+        assert data["tr"] == 1
+        assert data["q_sent"] < data["q_total"]
+        assert len(response["DevBar-Data"].encode()) <= 350
+
+    def test_devtools_data_header_respects_max_queries(self, rf, monkeypatch, settings):
+        settings.DEVBAR = {
+            "ENABLE_DEVTOOLS_DATA": True,
+            "DEVTOOLS_MAX_QUERIES": 2,
+        }
+
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 5,
+                "duration": 10.0,
+                "queries": [
+                    {
+                        "sql": f"SELECT * FROM foo WHERE id = {i}",
+                        "duration": 1.0,
+                        "is_duplicate": i > 1,
+                        "is_similar": 1,
+                    }
+                    for i in range(5)
+                ],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        response = middleware(rf.get("/"))
+        data = json.loads(response["DevBar-Data"])
+
+        assert data["tr"] == 1
+        assert data["q_total"] == 5
+        assert data["q_sent"] == 2
+        assert len(data["q"]) == 2
+
+    def test_devtools_data_header_hidden_when_budget_too_tiny(
+        self, rf, monkeypatch, settings
+    ):
+        settings.DEVBAR = {
+            "ENABLE_DEVTOOLS_DATA": True,
+            "DEVTOOLS_HEADER_MAX_BYTES": 12,
+        }
+
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 1,
+                "duration": 10.0,
+                "queries": [],
+            },
+        )
+
+        def get_response(request):
+            return HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+
+        middleware = DevBarMiddleware(get_response)
+        response = middleware(rf.get("/"))
+        assert "DevBar-Data" not in response
