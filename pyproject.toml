@@ -34,6 +34,7 @@ classifiers = [
 Homepage = "https://github.com/amureki/django-devbar"
 Repository = "https://github.com/amureki/django-devbar"
 Issues = "https://github.com/amureki/django-devbar/issues"
+Funding = "https://github.com/sponsors/amureki"
 
 [build-system]
 requires = ["uv_build>=0.9.16,<0.10.0"]
