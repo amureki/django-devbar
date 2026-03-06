@@ -218,41 +218,21 @@ function renderWaterfallChart(queries) {
 
 function renderEmptyState() {
   const app = document.getElementById('app');
-  const isLocalDomain = pageUrl && (
-    pageUrl.includes('localhost') ||
-    pageUrl.includes('127.0.0.1') ||
-    pageUrl.includes('.local') ||
-    pageUrl.includes('.test')
-  );
-
   let html = `
     <div class="empty-state">
-      <h2>Django DevBar</h2>`;
-
-  if (!isLocalDomain && pageUrl) {
-    html += `
-      <p style="margin-top: 12px;">⚠️ Not on a local development domain</p>
-      <p style="margin-top: 6px;">This extension only works on localhost and local development domains.</p>
-      <p style="margin-top: 12px; font-size: 10px;">
-        <a href="https://github.com/amureki/django-devbar" target="_blank" style="color: #1a73e8;">django-devbar</a>
-      </p>`;
-  } else {
-    html += `
+      <h2>Django DevBar</h2>
       <p style="margin-top: 12px;">No requests captured yet.</p>
       <p style="margin-top: 6px;">Navigate to a page with Django DevBar enabled.</p>
       <div style="margin-top: 16px; font-size: 11px; color: #888; line-height: 1.6;">
         <strong>Troubleshooting:</strong><br>
         • Make sure Django DevBar middleware is installed<br>
         • Set <span class="code">DEVBAR = {'ENABLE_DEVTOOLS_DATA': True}</span> in settings<br>
-        • Reload the page after enabling headers<br>
-        • Check that you're on a localhost or .local/.test domain
+        • Reload the page after enabling headers
       </div>
       <p style="margin-top: 12px; font-size: 10px;">
         <a href="https://github.com/amureki/django-devbar" target="_blank" style="color: #1a73e8;">django-devbar</a>
-      </p>`;
-  }
-
-  html += `</div>`;
+      </p>
+    </div>`;
   app.innerHTML = html;
 }
 

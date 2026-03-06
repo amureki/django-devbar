@@ -13,13 +13,7 @@
   "permissions": ["storage"],
   "content_scripts": [
     {
-      "matches": [
-        "http://localhost/*",
-        "http://127.0.0.1/*",
-        "https://localhost/*",
-        "http://*.local/*",
-        "http://*.test/*"
-      ],
+      "matches": ["<all_urls>"],
       "js": ["content.js"],
       "run_at": "document_start"
     }
