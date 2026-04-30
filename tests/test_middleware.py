@@ -226,6 +226,34 @@ class TestMiddleware:
         assert "app;dur=" in header
         assert "total;dur=" in header
 
+    def test_server_timing_header_preserves_existing_metrics(self, rf, monkeypatch):
+        monkeypatch.setattr(
+            tracker,
+            "get_stats",
+            lambda: {
+                "count": 3,
+                "duration": 12.5,
+                "duplicate_queries": [],
+            },
+        )
+
+        def get_response(request):
+            response = HttpResponse(
+                "<html><body>Test</body></html>", content_type="text/html"
+            )
+            response["Server-Timing"] = "cache;desc=hit;dur=1.23"
+            return response
+
+        middleware = DevBarMiddleware(get_response)
+        request = rf.get("/")
+        response = middleware(request)
+
+        header = response["Server-Timing"]
+        assert header.startswith("cache;desc=hit;dur=1.23, ")
+        assert "db;dur=12.50" in header
+        assert "app;dur=" in header
+        assert "total;dur=" in header
+
     def test_devtools_data_header_truncated_by_max_bytes(
         self, rf, monkeypatch, settings
     ):

@@ -165,6 +165,9 @@ class DevBarMiddleware:
             f"app;dur={stats['python_time']:.2f}",
             f"total;dur={stats['total_time']:.2f}",
         ]
+        existing = response.get("Server-Timing")
+        if existing:
+            parts.insert(0, existing)
         response["Server-Timing"] = ", ".join(parts)
 
     def _can_inject(self, response):
