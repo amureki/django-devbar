@@ -17,6 +17,7 @@ let currentRequest = null;
 let pageUrl = null;
 let pageUrlReady = false;
 let pendingHarLog = null;
+const copyResetTimers = new WeakMap();
 
 chrome.devtools.inspectedWindow.eval('location.href', (result, error) => {
   if (error || !result) return;
@@ -37,8 +38,14 @@ chrome.devtools.network.onNavigated.addListener((url) => {
 });
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
+const formatCopyMs = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(1) : '0.0';
+};
 const countSimilar = (queries) => queries?.filter(q => q.sim).length ?? 0;
 const countDuplicates = (queries) => queries?.filter(q => q.dup).length ?? 0;
+const getQueries = (data) => Array.isArray(data?.q) ? data.q : [];
+const getQueryId = (idx) => `Q${String(idx + 1).padStart(3, '0')}`;
 const getTruncationInfo = (data) => {
   if (!data?.tr) return '';
   const sent = data.q_sent ?? 0;
@@ -52,8 +59,120 @@ const formatTime = (date) => {
 
 function escapeHtml(text) {
   const div = document.createElement('div');
-  div.textContent = text;
+  div.textContent = String(text ?? '');
   return div.innerHTML;
+}
+
+function getQueryLabels(query) {
+  const labels = [];
+  if (query.dup) labels.push('duplicate');
+  if (query.sim) labels.push('similar');
+  return labels;
+}
+
+function formatQueryTitle(query, idx) {
+  const labels = getQueryLabels(query);
+  const labelText = labels.length ? ` — ${labels.join(', ')}` : '';
+  return `${getQueryId(idx)} — ${formatCopyMs(query.dur)}ms${labelText}`;
+}
+
+function formatRequestMarkdown(request) {
+  if (!request) return '';
+
+  const { data, method, url } = request;
+  const queries = getQueries(data);
+  const lines = [
+    '# Django DevBar Query Report',
+    '',
+    '## Request',
+    `- method: ${method}`,
+    `- path: ${getPathFromUrl(url)}`,
+    `- url: ${url}`,
+    `- captured_at: ${formatTime(request.timestamp)}`,
+    '',
+    '## Summary',
+    `- total_queries: ${data.c ?? queries.length}`,
+    `- copied_queries: ${queries.length}`,
+    `- db_time_ms: ${formatCopyMs(data.db)}`,
+    `- app_time_ms: ${formatCopyMs(data.app)}`,
+    `- duplicate_queries: ${countDuplicates(queries)}`,
+    `- similar_queries: ${countSimilar(queries)}`,
+    `- truncated: ${Boolean(data.tr)}`,
+  ];
+
+  const truncationInfo = getTruncationInfo(data);
+  if (truncationInfo) {
+    lines.push(`- truncation_note: ${truncationInfo}`);
+  }
+
+  if (!queries.length) return `${lines.join('\n')}\n`;
+
+  lines.push('', '## Queries');
+  queries.forEach((query, idx) => {
+    const fence = getMarkdownFence(query.s);
+    lines.push('', `### ${formatQueryTitle(query, idx)}`, '', `${fence}sql`, query.s ?? '', fence);
+  });
+
+  return `${lines.join('\n')}\n`;
+}
+
+function getMarkdownFence(text) {
+  const backtickRuns = String(text ?? '').match(/`+/g) ?? [];
+  const longestRun = backtickRuns.reduce((longest, run) => Math.max(longest, run.length), 0);
+  return '`'.repeat(Math.max(3, longestRun + 1));
+}
+
+function formatRequestSql(request) {
+  return getQueries(request?.data).map((query, idx) => {
+    return `-- ${formatQueryTitle(query, idx)}\n${query.s ?? ''}`;
+  }).join('\n\n');
+}
+
+async function writeClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Try the textarea fallback below.
+    }
+  }
+
+  const activeElement = document.activeElement;
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    if (!document.execCommand('copy')) {
+      throw new Error('Clipboard copy command failed');
+    }
+  } finally {
+    textarea.remove();
+    if (activeElement && typeof activeElement.focus === 'function') {
+      activeElement.focus({ preventScroll: true });
+    }
+  }
+}
+
+function flashCopyStatus(button, label = 'Copied', className = 'is-copied') {
+  const original = button.dataset.originalLabel || button.textContent;
+  button.dataset.originalLabel = original;
+  clearTimeout(copyResetTimers.get(button));
+
+  button.textContent = label;
+  button.classList.remove('is-copied', 'is-copy-failed');
+  button.classList.add(className);
+
+  const timer = setTimeout(() => {
+    button.textContent = original;
+    button.classList.remove(className);
+    copyResetTimers.delete(button);
+  }, 1200);
+  copyResetTimers.set(button, timer);
 }
 
 function formatSql(sql) {
@@ -88,18 +207,6 @@ function parseDevBarHeaders(headers) {
     } catch (e) {
       console.error('Failed to parse DevBar-Data header:', e);
     }
-  }
-
-  if (devbarHeaders['devbar-query-count']) {
-    const dbTime = parseFloat(devbarHeaders['devbar-db-time']) || 0;
-    const appTime = parseFloat(devbarHeaders['devbar-app-time']) || 0;
-    return {
-      count: parseInt(devbarHeaders['devbar-query-count'], 10),
-      db_time: dbTime,
-      app_time: appTime,
-      total_time: dbTime + appTime,
-      duplicates: []
-    };
   }
 
   return null;
@@ -166,6 +273,18 @@ function getRequestType(req) {
   return { class: 'type-xhr', label: 'XHR' };
 }
 
+function getDurationClass(duration) {
+  if (duration > 50) return 'slow';
+  if (duration > 10) return 'medium';
+  return 'fast';
+}
+
+function getQueryClass(query) {
+  if (query.dup) return ' duplicate';
+  if (query.sim) return ' similar';
+  return '';
+}
+
 function renderWaterfallChart(queries) {
   if (!Array.isArray(queries) || queries.length === 0) return '';
 
@@ -180,35 +299,35 @@ function renderWaterfallChart(queries) {
 
   const gridInterval = maxEndTime > 100 ? 20 : maxEndTime > 50 ? 10 : 5;
   const gridLines = [];
-  for (let t = 0; t <= maxEndTime; t += gridInterval) {
-    const position = (t / maxEndTime) * 100;
-    gridLines.push(`
-      <div class="waterfall-grid-line" style="left: ${position}%"></div>
-      <div class="waterfall-grid-label" style="left: ${position}%">${t}ms</div>
-    `);
+  if (maxEndTime > 0) {
+    for (let t = 0; t <= maxEndTime; t += gridInterval) {
+      const position = (t / maxEndTime) * 100;
+      gridLines.push(`
+        <div class="waterfall-grid-line" style="left: ${position}%"></div>
+        <div class="waterfall-grid-label" style="left: ${position}%">${t}ms</div>
+      `);
+    }
   }
 
   return `<div class="waterfall-grid-lines">${gridLines.join('')}</div>
     ${queriesWithStartTime.map((query, idx) => {
       const duration = query.dur ?? 0;
       const startTime = query.start_time ?? 0;
-      const durationClass = duration > 50 ? 'slow' : duration > 10 ? 'medium' : 'fast';
       const barWidth = maxEndTime > 0 ? (duration / maxEndTime) * 100 : 0;
       const barLeft = maxEndTime > 0 ? (startTime / maxEndTime) * 100 : 0;
+      const formattedSql = formatSql(query.s);
 
-      const queryClass = query.dup ? ' duplicate' : query.sim ? ' similar' : '';
       return `
-      <div class="query${queryClass}" data-idx="${idx}">
+      <div class="query${getQueryClass(query)}" data-idx="${idx}">
         <div class="query-header">
-          <div class="query-summary">
-            <code>${formatSql(query.s)}</code>
-          </div>
+          <span class="query-index">#${idx + 1}</span>
+          <span class="query-summary" title="${escapeHtml(query.s)}"><code>${formattedSql}</code></span>
           <span class="query-time">${duration.toFixed(1)}ms</span>
         </div>
         <div class="waterfall-row">
           <span class="waterfall-start">${startTime.toFixed(1)}ms</span>
           <div class="waterfall-chart">
-            <div class="timing-bar ${durationClass}" style="width: ${barWidth}%; margin-left: ${barLeft}%"></div>
+            <div class="timing-bar ${getDurationClass(duration)}" style="width: ${barWidth}%; margin-left: ${barLeft}%"></div>
           </div>
           <span class="waterfall-end">${(startTime + duration).toFixed(1)}ms</span>
         </div>
@@ -218,7 +337,7 @@ function renderWaterfallChart(queries) {
 
 function renderEmptyState() {
   const app = document.getElementById('app');
-  let html = `
+  const html = `
     <div class="empty-state">
       <h2>Django DevBar</h2>
       <p style="margin-top: 12px;">No requests captured yet.</p>
@@ -245,8 +364,9 @@ function renderUI() {
 
   const { data, method, url } = currentRequest;
   const type = getRequestType(currentRequest);
-  const currentDuplicateCount = countDuplicates(data.q);
-  const currentSimilarCount = countSimilar(data.q);
+  const queries = getQueries(data);
+  const currentDuplicateCount = countDuplicates(queries);
+  const currentSimilarCount = countSimilar(queries);
   const truncationInfo = getTruncationInfo(data);
 
   let html = `
@@ -257,19 +377,25 @@ function renderUI() {
         <span class="request-url" title="${escapeHtml(url)}">${escapeHtml(getPathFromUrl(url))}</span>
         <a href="${escapeHtml(url)}" target="_blank" class="url-link" title="Open in new tab" aria-label="Open request URL in new tab">↗</a>
       </div>
-      <div class="metrics">
-        ${renderMetric('queries', data.c ?? 0)}
-        ${renderMetric('db', formatMs(data.db), 'ms')}
-        ${renderMetric('app', formatMs(data.app), 'ms')}
-        ${currentDuplicateCount ? `<span class="dup-warn">⚠ ${currentDuplicateCount} dup</span>` : ''}
-        ${currentSimilarCount ? `<span class="sim-warn">≈ ${currentSimilarCount} sim</span>` : ''}
-        <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
+      <div class="current-right">
+        <div class="metrics">
+          ${renderMetric('queries', data.c ?? 0)}
+          ${renderMetric('db', formatMs(data.db), 'ms')}
+          ${renderMetric('app', formatMs(data.app), 'ms')}
+          ${currentDuplicateCount ? `<span class="dup-warn">⚠ ${currentDuplicateCount} dup</span>` : ''}
+          ${currentSimilarCount ? `<span class="sim-warn">≈ ${currentSimilarCount} sim</span>` : ''}
+          <span class="metric-label">${formatTime(currentRequest.timestamp)}</span>
+        </div>
+        <div class="panel-actions">
+          <button type="button" class="copy-button" data-action="copy-request-sql" ${queries.length ? '' : 'disabled'}>Copy SQL</button>
+          <button type="button" class="copy-button primary" data-action="copy-request-markdown">Copy Markdown</button>
+        </div>
       </div>
     </div>`;
 
-  if (Array.isArray(data.q) && data.q.length > 0) {
+  if (queries.length > 0) {
     html += `<div class="queries"><div class="waterfall-container">
-      ${renderWaterfallChart(data.q)}
+      ${renderWaterfallChart(queries)}
     </div>
     ${truncationInfo ? `<div class="trunc-note">${escapeHtml(truncationInfo)}</div>` : ''}
     </div>`;
@@ -329,6 +455,31 @@ function processHarLog(harLog) {
 
   renderUI();
 }
+
+document.addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const action = button.dataset.action;
+
+  try {
+    switch (action) {
+      case 'copy-request-markdown':
+        await writeClipboard(formatRequestMarkdown(currentRequest));
+        flashCopyStatus(button);
+        break;
+      case 'copy-request-sql':
+        await writeClipboard(formatRequestSql(currentRequest));
+        flashCopyStatus(button);
+        break;
+      default:
+        return;
+    }
+  } catch (error) {
+    console.error('Failed to copy DevBar content:', error);
+    flashCopyStatus(button, 'Copy failed', 'is-copy-failed');
+  }
+});
 
 chrome.devtools.network.getHAR((harLog) => {
   if (pageUrlReady) {
