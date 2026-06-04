@@ -38,9 +38,14 @@ chrome.devtools.network.onNavigated.addListener((url) => {
 });
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
+const formatCopyMs = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(1) : '0.0';
+};
 const countSimilar = (queries) => queries?.filter(q => q.sim).length ?? 0;
 const countDuplicates = (queries) => queries?.filter(q => q.dup).length ?? 0;
 const getQueries = (data) => Array.isArray(data?.q) ? data.q : [];
+const getQueryId = (idx) => `Q${String(idx + 1).padStart(3, '0')}`;
 const getTruncationInfo = (data) => {
   if (!data?.tr) return '';
   const sent = data.q_sent ?? 0;
@@ -65,9 +70,10 @@ function getQueryLabels(query) {
   return labels;
 }
 
-function formatQueryLabels(query) {
+function formatQueryTitle(query, idx) {
   const labels = getQueryLabels(query);
-  return labels.length ? ` (${labels.join(', ')})` : '';
+  const labelText = labels.length ? ` — ${labels.join(', ')}` : '';
+  return `${getQueryId(idx)} — ${formatCopyMs(query.dur)}ms${labelText}`;
 }
 
 function formatRequestMarkdown(request) {
@@ -76,26 +82,35 @@ function formatRequestMarkdown(request) {
   const { data, method, url } = request;
   const queries = getQueries(data);
   const lines = [
-    `### ${method} ${getPathFromUrl(url)}`,
+    '# Django DevBar Query Report',
     '',
-    `- URL: ${url}`,
-    `- Queries: ${data.c ?? queries.length}`,
-    `- DB time: ${formatMs(data.db)}ms`,
-    `- App time: ${formatMs(data.app)}ms`,
-    `- Captured: ${formatTime(request.timestamp)}`,
+    '## Request',
+    `- method: ${method}`,
+    `- path: ${getPathFromUrl(url)}`,
+    `- url: ${url}`,
+    `- captured_at: ${formatTime(request.timestamp)}`,
+    '',
+    '## Summary',
+    `- total_queries: ${data.c ?? queries.length}`,
+    `- copied_queries: ${queries.length}`,
+    `- db_time_ms: ${formatCopyMs(data.db)}`,
+    `- app_time_ms: ${formatCopyMs(data.app)}`,
+    `- duplicate_queries: ${countDuplicates(queries)}`,
+    `- similar_queries: ${countSimilar(queries)}`,
+    `- truncated: ${Boolean(data.tr)}`,
   ];
 
   const truncationInfo = getTruncationInfo(data);
   if (truncationInfo) {
-    lines.push(`- Note: ${truncationInfo}`);
+    lines.push(`- truncation_note: ${truncationInfo}`);
   }
 
   if (!queries.length) return `${lines.join('\n')}\n`;
 
-  lines.push('', '#### Queries');
+  lines.push('', '## Queries');
   queries.forEach((query, idx) => {
     const fence = getMarkdownFence(query.s);
-    lines.push('', `##### ${idx + 1}. ${formatMs(query.dur)}ms${formatQueryLabels(query)}`, '', `${fence}sql`, query.s ?? '', fence);
+    lines.push('', `### ${formatQueryTitle(query, idx)}`, '', `${fence}sql`, query.s ?? '', fence);
   });
 
   return `${lines.join('\n')}\n`;
@@ -109,15 +124,8 @@ function getMarkdownFence(text) {
 
 function formatRequestSql(request) {
   return getQueries(request?.data).map((query, idx) => {
-    const labels = getQueryLabels(query);
-    const labelText = labels.length ? ` ${labels.join(' ')}` : '';
-    return `-- ${idx + 1}. ${formatMs(query.dur)}ms${labelText}\n${query.s ?? ''}`;
+    return `-- ${formatQueryTitle(query, idx)}\n${query.s ?? ''}`;
   }).join('\n\n');
-}
-
-function formatQueryMarkdown(query, idx) {
-  const fence = getMarkdownFence(query.s);
-  return `#### Query ${idx + 1} — ${formatMs(query.dur)}ms${formatQueryLabels(query)}\n\n${fence}sql\n${query.s ?? ''}\n${fence}\n`;
 }
 
 async function writeClipboard(text) {
@@ -312,18 +320,11 @@ function renderWaterfallChart(queries) {
 
       return `
       <div class="query${getQueryClass(query)}" data-idx="${idx}">
-        <details class="query-details">
-          <summary class="query-header">
-            <span class="query-index">#${idx + 1}</span>
-            <span class="query-summary"><code>${formattedSql}</code></span>
-            <span class="query-time">${duration.toFixed(1)}ms</span>
-          </summary>
-          <div class="query-actions">
-            <button type="button" class="copy-button" data-action="copy-query-sql" data-query-idx="${idx}">Copy SQL</button>
-            <button type="button" class="copy-button" data-action="copy-query-markdown" data-query-idx="${idx}">Copy Markdown</button>
-          </div>
-          <pre class="query-full"><code>${formattedSql}</code></pre>
-        </details>
+        <div class="query-header">
+          <span class="query-index">#${idx + 1}</span>
+          <span class="query-summary" title="${escapeHtml(query.s)}"><code>${formattedSql}</code></span>
+          <span class="query-time">${duration.toFixed(1)}ms</span>
+        </div>
         <div class="waterfall-row">
           <span class="waterfall-start">${startTime.toFixed(1)}ms</span>
           <div class="waterfall-chart">
@@ -461,7 +462,6 @@ document.addEventListener('click', async (event) => {
   if (!button) return;
 
   const action = button.dataset.action;
-  const queries = getQueries(currentRequest?.data);
 
   try {
     switch (action) {
@@ -473,17 +473,6 @@ document.addEventListener('click', async (event) => {
         await writeClipboard(formatRequestSql(currentRequest));
         flashCopied(button);
         break;
-      case 'copy-query-sql':
-      case 'copy-query-markdown': {
-        const idx = Number(button.dataset.queryIdx);
-        const query = queries[idx];
-        if (!query) return;
-
-        const text = action === 'copy-query-sql' ? query.s ?? '' : formatQueryMarkdown(query, idx);
-        await writeClipboard(text);
-        flashCopied(button);
-        break;
-      }
       default:
         return;
     }
