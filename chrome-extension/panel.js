@@ -130,10 +130,15 @@ function formatRequestSql(request) {
 
 async function writeClipboard(text) {
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Try the textarea fallback below.
+    }
   }
 
+  const activeElement = document.activeElement;
   const textarea = document.createElement('textarea');
   textarea.value = text;
   textarea.style.position = 'fixed';
@@ -142,23 +147,29 @@ async function writeClipboard(text) {
   textarea.focus();
   textarea.select();
   try {
-    document.execCommand('copy');
+    if (!document.execCommand('copy')) {
+      throw new Error('Clipboard copy command failed');
+    }
   } finally {
     textarea.remove();
+    if (activeElement && typeof activeElement.focus === 'function') {
+      activeElement.focus({ preventScroll: true });
+    }
   }
 }
 
-function flashCopied(button, label = 'Copied') {
+function flashCopyStatus(button, label = 'Copied', className = 'is-copied') {
   const original = button.dataset.originalLabel || button.textContent;
   button.dataset.originalLabel = original;
   clearTimeout(copyResetTimers.get(button));
 
   button.textContent = label;
-  button.classList.add('is-copied');
+  button.classList.remove('is-copied', 'is-copy-failed');
+  button.classList.add(className);
 
   const timer = setTimeout(() => {
     button.textContent = original;
-    button.classList.remove('is-copied');
+    button.classList.remove(className);
     copyResetTimers.delete(button);
   }, 1200);
   copyResetTimers.set(button, timer);
@@ -467,18 +478,18 @@ document.addEventListener('click', async (event) => {
     switch (action) {
       case 'copy-request-markdown':
         await writeClipboard(formatRequestMarkdown(currentRequest));
-        flashCopied(button);
+        flashCopyStatus(button);
         break;
       case 'copy-request-sql':
         await writeClipboard(formatRequestSql(currentRequest));
-        flashCopied(button);
+        flashCopyStatus(button);
         break;
       default:
         return;
     }
   } catch (error) {
     console.error('Failed to copy DevBar content:', error);
-    flashCopied(button, 'Copy failed');
+    flashCopyStatus(button, 'Copy failed', 'is-copy-failed');
   }
 });
 
