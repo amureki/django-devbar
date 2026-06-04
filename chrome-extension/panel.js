@@ -209,18 +209,6 @@ function parseDevBarHeaders(headers) {
     }
   }
 
-  if (devbarHeaders['devbar-query-count']) {
-    const dbTime = parseFloat(devbarHeaders['devbar-db-time']) || 0;
-    const appTime = parseFloat(devbarHeaders['devbar-app-time']) || 0;
-    return {
-      count: parseInt(devbarHeaders['devbar-query-count'], 10),
-      db_time: dbTime,
-      app_time: appTime,
-      total_time: dbTime + appTime,
-      duplicates: []
-    };
-  }
-
   return null;
 }
 
