@@ -11,7 +11,7 @@ Django DevBar helps you:
 • Track duplicate queries that could be optimized
 • Monitor response times without leaving DevTools
 
-🔒 Runs only on localhost and local development domains (.local, .test). Cannot access any other websites or browsing data. 100% open source.
+🔒 No spyware, analytics, or tracking. The optional page toggle runs on all URLs only to hide/show the `#django-devbar` element when present; DevTools metrics are read from the inspected page's network log while DevTools is open. 100% open source.
 
 ⚙️ Requires Django DevBar middleware in your Django app: https://github.com/amureki/django-devbar
 

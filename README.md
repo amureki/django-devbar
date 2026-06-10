@@ -16,16 +16,16 @@ Similar and duplicate queries detected – severity indicators and details shown
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
-[optional] Chrome extension - showing detailed metrics in DevTools panel:
+[optional] Browser extension - showing detailed metrics in DevTools panel:
 
-[![Chrome DevTools extension](https://github.com/user-attachments/assets/f53a4bb8-fba1-446c-8224-82eac47bd027)](#chrome-extension)
+[![Browser DevTools extension](https://github.com/user-attachments/assets/f53a4bb8-fba1-446c-8224-82eac47bd027)](#browser-extension)
 
 ## Motivation
 
 While [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/) is a proven tool trusted by countless projects, django-devbar explores a different approach to development debugging:
 
 - **Minimal setup** — just add middleware, nothing else required
-- **Browser DevTools integration** — Chrome extension panel works with any response type, including JSON
+- **Browser DevTools integration** — extension panel works with any response type, including JSON
 - **Zero extra dependencies** — only requires Django
 - **Lower overhead** — no extra requests to debug endpoints
 - **Non-intrusive** — HTML bar is optional; works via headers and DevTools panel alone
@@ -73,7 +73,7 @@ DEVBAR = {
 
 Django DevBar adds HTTP response headers with performance metrics:
 
-- **Server-Timing** (always present) – Standard HTTP header with database, application, and total time metrics. Visible in Chrome DevTools Network tab under Timing.
+- **Server-Timing** (always present) – Standard HTTP header with database, application, and total time metrics. Visible in browser DevTools Network tab under Timing.
 
 An additional header is included by default in DEBUG mode:
 
@@ -94,8 +94,8 @@ This is useful for:
 Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 ```
 
-## Chrome Extension
+## Browser Extension
 
-View Django DevBar metrics directly in Chrome DevTools with the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
+View Django DevBar metrics directly in browser DevTools. Chrome users can install the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
 
-See [chrome-extension/README.md](chrome-extension/README.md) for more details.
+See [browser-extension/README.md](browser-extension/README.md) for more details.

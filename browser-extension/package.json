@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:chrome": "node scripts/build.mjs chrome",
+    "build:firefox": "node scripts/build.mjs firefox",
     "build:dev": "node scripts/build.mjs --dev",
     "generate-icons": "node scripts/generate-icons.mjs",
-    "zip": "cd dist && zip -r ../django-devbar-extension.zip ."
+    "zip:chrome": "cd dist/chrome && zip -r ../../django-devbar-chrome.zip .",
+    "zip:firefox": "cd dist/firefox && zip -r ../../django-devbar-firefox.zip ."
   },
   "devDependencies": {
     "sharp": "^0.34.5"
