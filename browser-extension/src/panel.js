@@ -1,14 +1,58 @@
+const extensionApi = globalThis.browser ?? globalThis.chrome;
+const usesPromiseApi = Boolean(globalThis.browser?.devtools || globalThis.browser?.storage);
 const MAX_HISTORY = 50;
 const STORAGE_KEY = 'django-devbar-show-bar';
 
+function getStorage(keys, callback) {
+  if (usesPromiseApi) {
+    extensionApi.storage.local.get(keys).then(callback);
+    return;
+  }
+
+  extensionApi.storage.local.get(keys, callback);
+}
+
+function setStorage(values) {
+  if (usesPromiseApi) {
+    extensionApi.storage.local
+      .set(values)
+      .catch((error) => console.error('Failed to save DevBar setting:', error));
+    return;
+  }
+
+  extensionApi.storage.local.set(values);
+}
+
+function evalInspectedWindow(expression, callback) {
+  if (globalThis.browser?.devtools) {
+    extensionApi.devtools.inspectedWindow.eval(expression)
+      .then(([result, error]) => callback(result, error))
+      .catch((error) => callback(null, error));
+    return;
+  }
+
+  extensionApi.devtools.inspectedWindow.eval(expression, callback);
+}
+
+function getHar(callback) {
+  if (globalThis.browser?.devtools) {
+    extensionApi.devtools.network.getHAR()
+      .then(callback)
+      .catch((error) => console.error('Failed to read DevTools HAR:', error));
+    return;
+  }
+
+  extensionApi.devtools.network.getHAR(callback);
+}
+
 const checkbox = document.getElementById('show-bar-toggle');
-if (checkbox && chrome && chrome.storage) {
-  chrome.storage.local.get([STORAGE_KEY], (result) => {
+if (checkbox && extensionApi?.storage) {
+  getStorage([STORAGE_KEY], (result) => {
     checkbox.checked = result[STORAGE_KEY] !== false;
   });
 
   checkbox.addEventListener('change', () => {
-    chrome.storage.local.set({ [STORAGE_KEY]: checkbox.checked });
+    setStorage({ [STORAGE_KEY]: checkbox.checked });
   });
 }
 
@@ -19,7 +63,7 @@ let pageUrlReady = false;
 let pendingHarLog = null;
 const copyResetTimers = new WeakMap();
 
-chrome.devtools.inspectedWindow.eval('location.href', (result, error) => {
+evalInspectedWindow('location.href', (result, error) => {
   if (error || !result) return;
   pageUrl = result;
   pageUrlReady = true;
@@ -30,7 +74,7 @@ chrome.devtools.inspectedWindow.eval('location.href', (result, error) => {
   }
 });
 
-chrome.devtools.network.onNavigated.addListener((url) => {
+extensionApi.devtools.network.onNavigated.addListener((url) => {
   pageUrl = url;
   requestHistory = [];
   currentRequest = null;
@@ -61,6 +105,11 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = String(text ?? '');
   return div.innerHTML;
+}
+
+function replaceHtml(element, html) {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  element.replaceChildren(...parsed.body.childNodes);
 }
 
 function getQueryLabels(query) {
@@ -352,7 +401,7 @@ function renderEmptyState() {
         <a href="https://github.com/amureki/django-devbar" target="_blank" style="color: #1a73e8;">django-devbar</a>
       </p>
     </div>`;
-  app.innerHTML = html;
+  replaceHtml(app, html);
 }
 
 function renderUI() {
@@ -441,7 +490,7 @@ function renderUI() {
     </div>`;
   }
 
-  app.innerHTML = html;
+  replaceHtml(app, html);
 }
 
 
@@ -481,7 +530,7 @@ document.addEventListener('click', async (event) => {
   }
 });
 
-chrome.devtools.network.getHAR((harLog) => {
+getHar((harLog) => {
   if (pageUrlReady) {
     processHarLog(harLog);
   } else {
@@ -489,6 +538,6 @@ chrome.devtools.network.getHAR((harLog) => {
   }
 });
 
-chrome.devtools.network.onRequestFinished.addListener(processRequest);
+extensionApi.devtools.network.onRequestFinished.addListener(processRequest);
 
 renderEmptyState();

@@ -4,7 +4,7 @@
 
 ## Overview
 
-Django DevBar is a developer tool Chrome extension designed to display performance metrics for Django web applications during local development.
+Django DevBar is a developer tool browser extension designed to display performance metrics for Django web applications during local development.
 This privacy policy explains what data is collected and how it's used.
 
 ## Data Collection
@@ -26,7 +26,7 @@ Django DevBar collects and stores the following data **locally on your device**:
 
 ## Data Storage
 
-All data is stored using Chrome's `chrome.storage.local` API:
+All data is stored using the browser extension local storage API:
 
 - **Local storage** — Data is stored on your device only
 - **No sync** — Settings do not sync across devices
@@ -36,17 +36,17 @@ All data is stored using Chrome's `chrome.storage.local` API:
 
 The extension processes the following data in memory only:
 
-- **HTTP Response Headers** — Reads `DevBar-Data` headers from localhost and local development domains to display performance metrics
+- **HTTP Response Headers** — Reads `DevBar-Data` headers from the inspected page's DevTools network log to display performance metrics
 - **Request History** — Maintains up to 50 recent requests in memory while DevTools is open; cleared when DevTools closes
 
 This data is never stored persistently or transmitted externally.
 
 ## Permissions Explained
 
-| Permission                             | Why We Need It                                                                    |
-| -------------------------------------- | --------------------------------------------------------------------------------- |
-| `storage`                              | Store your UI preference for showing/hiding the on-page DevBar                    |
-| Content scripts on development domains | Control DevBar visibility on localhost, 127.0.0.1, \*.local, \*.test domains only |
+| Permission                  | Why We Need It                                                              |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `storage`                   | Store your UI preference for showing/hiding the on-page DevBar              |
+| Content scripts on all URLs | Apply the show/hide preference to the `#django-devbar` element when present |
 
 ## Third-Party Services
 
@@ -56,7 +56,7 @@ Django DevBar does not use any third-party services, analytics, or tracking.
 
 To delete all Django DevBar data:
 
-1. Open Chrome extension settings (`chrome://extensions/`)
+1. Open browser extension settings (`chrome://extensions/` in Chrome or `about:addons` in Firefox)
 1. Find Django DevBar → Click "Remove"
 1. All locally stored data will be deleted
 
@@ -68,7 +68,7 @@ Alternatively, you can clear the extension's storage:
 
 ## Data Security
 
-Since the extension only works with local development environments and stores minimal data (a single UI preference), security risks are minimal. We follow Chrome extension best practices:
+Since the extension stores minimal data (a single UI preference), security risks are minimal. We follow browser extension best practices:
 
 - Manifest V3 compliance for enhanced security
 - Minimal permission requests
