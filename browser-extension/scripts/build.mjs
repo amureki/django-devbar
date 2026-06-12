@@ -45,7 +45,7 @@ function writeManifest(browser, outputDir) {
 function enableDevMode(outputDir) {
   const devtoolsPath = join(outputDir, 'devtools.js');
   const content = readFileSync(devtoolsPath, 'utf-8').replace(
-    /'Django DevBar'/,
+    /'Django DevBar'/g,
     "'Django DevBar (dev)'"
   );
   writeFileSync(devtoolsPath, content);
