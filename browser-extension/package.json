@@ -10,9 +10,12 @@
     "build:dev": "node scripts/build.mjs --dev",
     "generate-icons": "node scripts/generate-icons.mjs",
     "zip:chrome": "cd dist/chrome && zip -r ../../django-devbar-chrome.zip .",
-    "zip:firefox": "cd dist/firefox && zip -r ../../django-devbar-firefox.zip ."
+    "zip:firefox": "cd dist/firefox && zip -r ../../django-devbar-firefox.zip .",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "sharp": "^0.34.5"
+    "jsdom": "^29.1.1",
+    "sharp": "^0.34.5",
+    "vitest": "^4.1.8"
   }
 }
