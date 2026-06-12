@@ -75,7 +75,11 @@ evalInspectedWindow('location.href', (result, error) => {
 });
 
 extensionApi.devtools.network.onNavigated.addListener((url) => {
+  const previousPageUrl = pageUrl;
   pageUrl = url;
+
+  if (isSameNavigationUrl(previousPageUrl, url)) return;
+
   requestHistory = [];
   currentRequest = null;
   renderUI();
@@ -236,6 +240,20 @@ function getPathFromUrl(url) {
     return parsed.pathname + parsed.search;
   } catch (e) {
     return url;
+  }
+}
+
+function isSameNavigationUrl(previousUrl, nextUrl) {
+  if (!previousUrl || !nextUrl) return false;
+
+  try {
+    const previous = new URL(previousUrl);
+    const next = new URL(nextUrl, previous);
+    previous.hash = '';
+    next.hash = '';
+    return previous.href === next.href;
+  } catch (e) {
+    return previousUrl.split('#')[0] === nextUrl.split('#')[0];
   }
 }
 
