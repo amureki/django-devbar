@@ -1,8 +1,12 @@
-# Chrome Web Store Listing
+# Browser Extension Store Listing
+
+## Short Summary
+
+View Django performance metrics directly in browser DevTools.
 
 ## Detailed Description
 
-View Django performance metrics directly in Chrome DevTools. Track database queries, response times, and duplicate queries during local development.
+View Django performance metrics directly in browser DevTools. Track database queries, response times, and duplicate queries during local development.
 
 Django DevBar helps you:
 
@@ -19,7 +23,7 @@ Django DevBar helps you:
 
 🛠️ What you get:
 
-• Dedicated "Django DevBar" panel in Chrome DevTools
+• Dedicated "Django DevBar" panel in browser DevTools
 • Database query count and total execution time
 • Application processing time
 • Total response time
@@ -31,7 +35,7 @@ All metrics appear automatically as you navigate your Django app.
 
 🎯 Perfect for Django developers who want performance insights where they already work — right in DevTools.
 
-🛑 No spyware, no tracking, no unnecessary permissions. Just a simple tool for local Django development.
+🛑 No spyware, no tracking, no unnecessary permissions beyond what's needed for the DevTools panel and the optional page toggle.
 
 …………………………………..
 
