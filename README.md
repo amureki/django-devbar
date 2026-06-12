@@ -16,7 +16,7 @@ Similar and duplicate queries detected – severity indicators and details shown
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
-[optional] Browser extension - showing detailed metrics in DevTools panel:
+[optional] Browser extension (Chrome and Firefox) — showing detailed metrics in DevTools panel:
 
 [![Browser DevTools extension](https://github.com/user-attachments/assets/f53a4bb8-fba1-446c-8224-82eac47bd027)](#browser-extension)
 
