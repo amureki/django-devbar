@@ -6,6 +6,19 @@
 Lightweight performance devbar for Django.
 Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
 
+[![Badge PyPI]][pypi]
+[![Badge Chrome]][chrome]
+[![Badge Firefox]][firefox]
+
+## Install
+
+| Component                  | Install from               | Notes                             |
+| :------------------------- | :------------------------- | :-------------------------------- |
+| Django package             | [PyPI]                     | `uv add --dev django-devbar`      |
+| Chrome DevTools extension  | [Chrome Web Store][chrome] | Optional                          |
+| Firefox DevTools extension | [Firefox Add-ons][firefox] | Optional                          |
+| Browser extension packages | [GitHub Releases]          | Manual/dev installs and checksums |
+
 ## Showcase
 
 Normal operation – showing query count, duration, and application time:
@@ -30,7 +43,7 @@ While [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/) is a 
 - **Lower overhead** — no extra requests to debug endpoints
 - **Non-intrusive** — HTML bar is optional; works via headers and DevTools panel alone
 
-## Installation
+## Django Setup
 
 ```bash
 # Using uv (recommended)
@@ -96,6 +109,14 @@ Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 
 ## Browser Extension
 
-View Django DevBar metrics directly in browser DevTools. Chrome users can install the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
+View Django DevBar metrics directly in browser DevTools. Install from [Chrome Web Store][chrome] or [Firefox Add-ons][firefox].
 
 See [browser-extension/README.md](browser-extension/README.md) for more details.
+
+[badge chrome]: https://img.shields.io/chrome-web-store/v/fehcaaopchkbknbdhjadnmehiifdmeid?label=Chrome
+[badge firefox]: https://img.shields.io/amo/v/django-devbar?label=Firefox
+[badge pypi]: https://img.shields.io/pypi/v/django-devbar.svg
+[chrome]: https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid
+[firefox]: https://addons.mozilla.org/en-US/firefox/addon/django-devbar/
+[github releases]: https://github.com/amureki/django-devbar/releases
+[pypi]: https://pypi.org/project/django-devbar/
