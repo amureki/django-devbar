@@ -1,3 +1,5 @@
+import { shouldResetForMainDocumentRequest } from './navigation.js';
+
 const extensionApi = globalThis.browser ?? globalThis.chrome;
 const usesPromiseApi = Boolean(globalThis.browser?.devtools || globalThis.browser?.storage);
 const MAX_HISTORY = 50;
@@ -61,6 +63,7 @@ let currentRequest = null;
 let pageUrl = null;
 let pageUrlReady = false;
 let pendingHarLog = null;
+let pendingNavigationUrl = null;
 const copyResetTimers = new WeakMap();
 
 evalInspectedWindow('location.href', (result, error) => {
@@ -76,9 +79,7 @@ evalInspectedWindow('location.href', (result, error) => {
 
 extensionApi.devtools.network.onNavigated.addListener((url) => {
   pageUrl = url;
-  requestHistory = [];
-  currentRequest = null;
-  renderUI();
+  pendingNavigationUrl = url;
 });
 
 const formatMs = (value) => value?.toFixed(0) ?? '0';
@@ -273,12 +274,32 @@ function isMainPageRequest(url) {
   return normalize(url) === normalize(pageUrl);
 }
 
-function processRequest(request, options = {}) {
-  const data = parseDevBarHeaders(request.response.headers);
-  if (!data) return;
+function resetCapturedRequests() {
+  requestHistory = [];
+  currentRequest = null;
+}
 
+function processRequest(request, options = {}) {
   const isDocument = isDocumentRequest(request);
   const isMainPage = isMainPageRequest(request.request.url);
+  const shouldReset = shouldResetForMainDocumentRequest({
+    request,
+    pageUrl,
+    pendingNavigationUrl,
+    hasCapturedRequests: Boolean(currentRequest || requestHistory.length),
+    skipRender: options.skipRender,
+  });
+
+  if (shouldReset) {
+    resetCapturedRequests();
+    pendingNavigationUrl = null;
+  }
+
+  const data = parseDevBarHeaders(request.response.headers);
+  if (!data) {
+    if (shouldReset) renderUI();
+    return;
+  }
 
   const requestData = {
     url: request.request.url,

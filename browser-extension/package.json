@@ -8,6 +8,7 @@
     "build:chrome": "node scripts/build.mjs chrome",
     "build:firefox": "node scripts/build.mjs firefox",
     "build:dev": "node scripts/build.mjs --dev",
+    "test": "node --test tests/*.test.js",
     "generate-icons": "node scripts/generate-icons.mjs",
     "zip:chrome": "cd dist/chrome && zip -r ../../django-devbar-chrome.zip .",
     "zip:firefox": "cd dist/firefox && zip -r ../../django-devbar-firefox.zip ."
