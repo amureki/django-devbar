@@ -6,17 +6,18 @@
 Lightweight performance devbar for Django.
 Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
 
-[![PyPI](https://img.shields.io/pypi/v/django-devbar.svg)](https://pypi.org/project/django-devbar/)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/fehcaaopchkbknbdhjadnmehiifdmeid?label=Chrome)](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid)
-[![Firefox Add-ons](https://img.shields.io/amo/v/django-devbar?label=Firefox)](https://addons.mozilla.org/en-US/firefox/addon/django-devbar/)
+[![Badge PyPI]][pypi]
+[![Badge Chrome]][chrome]
+[![Badge Firefox]][firefox]
 
 ## Install
 
-| Component                  | Install from                                                                                                                                                                                           |
-| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Django package             | [PyPI](https://pypi.org/project/django-devbar/) — `uv add --dev django-devbar`                                                                                                                         |
-| Chrome DevTools extension  | <a href="https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid"><img src="docs/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="45"></a> |
-| Firefox DevTools extension | <a href="https://addons.mozilla.org/en-US/firefox/addon/django-devbar/"><img src="docs/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="45"></a>                                    |
+| Component                  | Install from               | Notes                             |
+| :------------------------- | :------------------------- | :-------------------------------- |
+| Django package             | [PyPI]                     | `uv add --dev django-devbar`      |
+| Chrome DevTools extension  | [Chrome Web Store][chrome] | Optional                          |
+| Firefox DevTools extension | [Firefox Add-ons][firefox] | Optional                          |
+| Browser extension packages | [GitHub Releases]          | Manual/dev installs and checksums |
 
 ## Showcase
 
@@ -108,6 +109,14 @@ Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 
 ## Browser Extension
 
-View Django DevBar metrics directly in browser DevTools. Install from the Chrome Web Store or Firefox Add-ons.
+View Django DevBar metrics directly in browser DevTools. Install from [Chrome Web Store][chrome] or [Firefox Add-ons][firefox].
 
 See [browser-extension/README.md](browser-extension/README.md) for more details.
+
+[badge chrome]: https://img.shields.io/chrome-web-store/v/fehcaaopchkbknbdhjadnmehiifdmeid?label=Chrome
+[badge firefox]: https://img.shields.io/amo/v/django-devbar?label=Firefox
+[badge pypi]: https://img.shields.io/pypi/v/django-devbar.svg
+[chrome]: https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid
+[firefox]: https://addons.mozilla.org/en-US/firefox/addon/django-devbar/
+[github releases]: https://github.com/amureki/django-devbar/releases
+[pypi]: https://pypi.org/project/django-devbar/

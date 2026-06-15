@@ -16,8 +16,10 @@ A DevTools extension for viewing Django DevBar performance metrics directly in y
 
    **Option A - Browser stores** (recommended):
 
-   <a href="https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid"><img src="../docs/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="60"></a>
-   <a href="https://addons.mozilla.org/en-US/firefox/addon/django-devbar/"><img src="../docs/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="60"></a>
+   - [Chrome Web Store](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid)
+   - [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/django-devbar/)
+
+   Packaged builds and checksums are available from [GitHub Releases](https://github.com/amureki/django-devbar/releases).
 
    **About Permissions**: Chrome shows a broad permissions warning because the optional page toggle is available on any development host. The content script only reads the extension setting and hides/shows the `#django-devbar` element when present.
 
