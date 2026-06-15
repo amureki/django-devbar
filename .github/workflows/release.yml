@@ -5,6 +5,7 @@ on:
 jobs:
   publish:
     name: Publish to PyPI
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
