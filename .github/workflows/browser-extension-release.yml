@@ -1,0 +1,137 @@
+name: Browser Extension Release
+on:
+  push:
+    tags:
+      - "browser-extension-*"
+permissions:
+  contents: write
+jobs:
+  release:
+    name: Build browser extension release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: browser-extension/package-lock.json
+      - name: Validate tag and package versions
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#browser-extension-}"
+
+          if [ "$tag" = "$version" ]; then
+            echo "Tag must start with browser-extension-" >&2
+            exit 1
+          fi
+
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag version must be semver-like, got: $version" >&2
+            exit 1
+          fi
+
+          node - "$version" <<'NODE'
+          const fs = require('node:fs');
+
+          const expected = process.argv[2];
+          const files = [
+            ['browser-extension/package.json', data => data.version],
+            ['browser-extension/package-lock.json', data => data.version],
+            ['browser-extension/package-lock.json', data => data.packages[''].version],
+            ['browser-extension/manifests/common.json', data => data.version],
+          ];
+
+          let failed = false;
+          for (const [path, readVersion] of files) {
+            const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const actual = readVersion(data);
+            if (actual !== expected) {
+              console.error(`${path}: expected ${expected}, got ${actual}`);
+              failed = true;
+            }
+          }
+
+          if (failed) process.exit(1);
+          console.log(`Validated browser extension version ${expected}`);
+          NODE
+      - name: Install dependencies
+        working-directory: browser-extension
+        run: npm ci
+      - name: Run tests
+        working-directory: browser-extension
+        run: npm test
+      - name: Build extensions
+        working-directory: browser-extension
+        run: npm run build
+      - name: Validate built manifests
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#browser-extension-}"
+
+          node - "$version" <<'NODE'
+          const fs = require('node:fs');
+
+          const expected = process.argv[2];
+          const chrome = JSON.parse(fs.readFileSync('browser-extension/dist/chrome/manifest.json', 'utf8'));
+          const firefox = JSON.parse(fs.readFileSync('browser-extension/dist/firefox/manifest.json', 'utf8'));
+
+          if (chrome.version !== expected) {
+            console.error(`Chrome manifest: expected ${expected}, got ${chrome.version}`);
+            process.exit(1);
+          }
+
+          if (firefox.version !== expected) {
+            console.error(`Firefox manifest: expected ${expected}, got ${firefox.version}`);
+            process.exit(1);
+          }
+
+          if (firefox.browser_specific_settings?.gecko?.id !== 'django-devbar@amureki.me') {
+            console.error('Firefox manifest has unexpected gecko id');
+            process.exit(1);
+          }
+
+          if (chrome.browser_specific_settings) {
+            console.error('Chrome manifest should not include browser_specific_settings');
+            process.exit(1);
+          }
+
+          console.log(`Validated built manifests for ${expected}`);
+          NODE
+      - name: Package extensions
+        working-directory: browser-extension
+        run: |
+          npm run zip:chrome
+          npm run zip:firefox
+          shasum -a 256 django-devbar-chrome.zip django-devbar-firefox.zip > SHA256SUMS
+      - name: Create draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#browser-extension-}"
+
+          cat > release-notes.md <<EOF
+          Browser extension ${version}.
+
+          Assets:
+          - django-devbar-chrome.zip — upload to Chrome Web Store, or extract and load unpacked in Chrome Developer Mode.
+          - django-devbar-firefox.zip — upload to AMO. Firefox stable requires AMO signing for normal installation.
+          - SHA256SUMS — checksums for the packaged assets.
+
+          Store submissions should use these exact generated assets.
+          EOF
+
+          gh release create "$GITHUB_REF_NAME" \
+            browser-extension/django-devbar-chrome.zip \
+            browser-extension/django-devbar-firefox.zip \
+            browser-extension/SHA256SUMS \
+            --draft \
+            --title "Browser extension ${version}" \
+            --notes-file release-notes.md \
+            --verify-tag
