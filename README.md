@@ -6,6 +6,11 @@
 Lightweight performance devbar for Django.
 Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
 
+[![PyPI](https://img.shields.io/pypi/v/django-devbar.svg)](https://pypi.org/project/django-devbar/)
+
+<a href="https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid"><img src="docs/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="60"></a>
+<a href="https://addons.mozilla.org/en-US/firefox/addon/django-devbar/"><img src="docs/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="60"></a>
+
 ## Showcase
 
 Normal operation – showing query count, duration, and application time:
@@ -96,6 +101,6 @@ Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 
 ## Browser Extension
 
-View Django DevBar metrics directly in browser DevTools. Chrome users can install the [official extension](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid).
+View Django DevBar metrics directly in browser DevTools. Install from the Chrome Web Store or Firefox Add-ons.
 
 See [browser-extension/README.md](browser-extension/README.md) for more details.
