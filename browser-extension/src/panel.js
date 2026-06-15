@@ -1,3 +1,5 @@
+import { shouldResetForMainDocumentRequest } from './navigation.js';
+
 const extensionApi = globalThis.browser ?? globalThis.chrome;
 const usesPromiseApi = Boolean(globalThis.browser?.devtools || globalThis.browser?.storage);
 const MAX_HISTORY = 50;
@@ -238,20 +240,6 @@ function getPathFromUrl(url) {
   }
 }
 
-function isSameNavigationUrl(previousUrl, nextUrl) {
-  if (!previousUrl || !nextUrl) return false;
-
-  try {
-    const previous = new URL(previousUrl);
-    const next = new URL(nextUrl, previous);
-    previous.hash = '';
-    next.hash = '';
-    return previous.href === next.href;
-  } catch (e) {
-    return previousUrl.split('#')[0] === nextUrl.split('#')[0];
-  }
-}
-
 function parseDevBarHeaders(headers) {
   const devbarHeaders = {};
   for (const { name, value } of headers) {
@@ -274,21 +262,10 @@ function parseDevBarHeaders(headers) {
   return null;
 }
 
-function getRequestHeader(request, name) {
-  return request.request.headers
-    ?.find(h => h.name.toLowerCase() === name)
-    ?.value.toLowerCase();
-}
-
 function isDocumentRequest(request) {
   if (request._resourceType === 'document') return true;
   const contentType = request.response.headers.find(h => h.name.toLowerCase() === 'content-type');
   return contentType?.value.includes('text/html') ?? false;
-}
-
-function isNavigationDocumentRequest(request) {
-  return request._resourceType === 'document'
-    || getRequestHeader(request, 'sec-fetch-dest') === 'document';
 }
 
 function isMainPageRequest(url) {
@@ -297,26 +274,21 @@ function isMainPageRequest(url) {
   return normalize(url) === normalize(pageUrl);
 }
 
-function isCurrentPageNavigationRequest(url) {
-  return pageUrl ? isSameNavigationUrl(url, pageUrl) : false;
-}
-
 function resetCapturedRequests() {
   requestHistory = [];
   currentRequest = null;
 }
 
-function shouldResetForMainDocumentRequest(request, options) {
-  if (options.skipRender || (!currentRequest && !requestHistory.length)) return false;
-  if (!isCurrentPageNavigationRequest(request.request.url)) return false;
-  if (!isNavigationDocumentRequest(request)) return false;
-  return !pendingNavigationUrl || isSameNavigationUrl(request.request.url, pendingNavigationUrl);
-}
-
 function processRequest(request, options = {}) {
   const isDocument = isDocumentRequest(request);
   const isMainPage = isMainPageRequest(request.request.url);
-  const shouldReset = shouldResetForMainDocumentRequest(request, options);
+  const shouldReset = shouldResetForMainDocumentRequest({
+    request,
+    pageUrl,
+    pendingNavigationUrl,
+    hasCapturedRequests: Boolean(currentRequest || requestHistory.length),
+    skipRender: options.skipRender,
+  });
 
   if (shouldReset) {
     resetCapturedRequests();
