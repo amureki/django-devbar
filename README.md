@@ -7,9 +7,16 @@ Lightweight performance devbar for Django.
 Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
 
 [![PyPI](https://img.shields.io/pypi/v/django-devbar.svg)](https://pypi.org/project/django-devbar/)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/fehcaaopchkbknbdhjadnmehiifdmeid?label=Chrome)](https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid)
+[![Firefox Add-ons](https://img.shields.io/amo/v/django-devbar?label=Firefox)](https://addons.mozilla.org/en-US/firefox/addon/django-devbar/)
 
-<a href="https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid"><img src="docs/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="60"></a>
-<a href="https://addons.mozilla.org/en-US/firefox/addon/django-devbar/"><img src="docs/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="60"></a>
+## Install
+
+| Component                  | Install from                                                                                                                                                                                           |
+| :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Django package             | [PyPI](https://pypi.org/project/django-devbar/) — `uv add --dev django-devbar`                                                                                                                         |
+| Chrome DevTools extension  | <a href="https://chromewebstore.google.com/detail/django-devbar/fehcaaopchkbknbdhjadnmehiifdmeid"><img src="docs/badges/chrome-web-store.png" alt="Available in the Chrome Web Store" height="45"></a> |
+| Firefox DevTools extension | <a href="https://addons.mozilla.org/en-US/firefox/addon/django-devbar/"><img src="docs/badges/firefox-addons.svg" alt="Get the add-on for Firefox" height="45"></a>                                    |
 
 ## Showcase
 
@@ -35,7 +42,7 @@ While [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/) is a 
 - **Lower overhead** — no extra requests to debug endpoints
 - **Non-intrusive** — HTML bar is optional; works via headers and DevTools panel alone
 
-## Installation
+## Django Setup
 
 ```bash
 # Using uv (recommended)
