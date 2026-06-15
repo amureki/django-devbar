@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
 import {
+  getRequestHeader,
   isSameNavigationUrl,
   shouldResetForMainDocumentRequest,
 } from '../src/navigation.js';
@@ -36,6 +37,23 @@ describe('isSameNavigationUrl', () => {
     assert.equal(
       isSameNavigationUrl('https://example.com/page?one=1', 'https://example.com/page?one=2'),
       false,
+    );
+  });
+});
+
+describe('getRequestHeader', () => {
+  it('matches header names case-insensitively', () => {
+    assert.equal(
+      getRequestHeader(request('https://example.com/page', {
+        headers: [{ name: 'Sec-Fetch-Dest', value: 'Document' }],
+      }), 'sec-fetch-dest'),
+      'document',
+    );
+    assert.equal(
+      getRequestHeader(request('https://example.com/page', {
+        headers: [{ name: 'sec-fetch-dest', value: 'Document' }],
+      }), 'Sec-Fetch-Dest'),
+      'document',
     );
   });
 });

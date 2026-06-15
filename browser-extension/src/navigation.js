@@ -13,8 +13,9 @@ export function isSameNavigationUrl(previousUrl, nextUrl) {
 }
 
 export function getRequestHeader(request, name) {
+  const lowerName = name.toLowerCase();
   return request.request.headers
-    ?.find(h => h.name.toLowerCase() === name)
+    ?.find(h => h.name.toLowerCase() === lowerName)
     ?.value.toLowerCase();
 }
 
