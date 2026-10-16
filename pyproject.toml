@@ -1,6 +1,6 @@
 [project]
 name = "django-devbar"
-version = "0.7.0"
+version = "1.0.0"
 description = "Lightweight performance devbar for Django"
 readme = "README.md"
 license = "MIT"
@@ -11,6 +11,7 @@ requires-python = ">=3.10"
 dependencies = ["django>=4.2"]
 keywords = ["django", "debug", "performance", "monitoring", "development"]
 classifiers = [
+  "Development Status :: 5 - Production/Stable",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
