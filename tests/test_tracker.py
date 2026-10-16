@@ -1,3 +1,5 @@
+import pytest
+
 from django_devbar import tracker
 from django_devbar.tracker import SQLTruncator, truncate_sql
 
@@ -103,6 +105,29 @@ class TestTracker:
 
         # Both occurrences are marked as duplicates (DDT semantics)
         assert len(tracker.get_stats()["duplicate_queries"]) == 2
+
+    @pytest.mark.parametrize(
+        ("first", "second", "duplicate_count"),
+        [
+            ({"id": 1}, {"id": 2}, 0),
+            ({"id": 1}, {"id": 1}, 2),
+            ({"id": 1, "active": True}, {"active": True, "id": 1}, 2),
+            ({"ids": [1]}, {"ids": [2]}, 0),
+            ({"ids": [1], "active": True}, {"active": True, "ids": [1]}, 2),
+        ],
+    )
+    def test_duplicates_with_named_params(self, first, second, duplicate_count):
+        tracker.reset()
+
+        sql = "SELECT * FROM t WHERE " + " AND ".join(
+            f"{name}=%({name})s" for name in first
+        )
+        for params in (first, second):
+            tracker.tracking_wrapper(lambda *args: None, sql, params, False, {})
+
+        stats = tracker.get_stats()
+        assert len(stats["duplicate_queries"]) == duplicate_count
+        assert len(stats["similar_queries"]) == 2
 
     def test_similar_queries_detected_same_sql_different_params(self):
         tracker.reset()
