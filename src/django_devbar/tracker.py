@@ -1,4 +1,5 @@
 import re
+from collections.abc import Mapping
 from contextvars import ContextVar
 from time import perf_counter
 
@@ -28,25 +29,16 @@ def get_stats():
 
     # Count occurrences of each SQL template and each (SQL, params_hash) pair
     sql_counts = {}
-    duplicate_keys = set()
+    dup_key_counts = {}
     for q in queries:
         sql = q["sql"]
         params_hash = q["params_hash"]
         sql_counts[sql] = sql_counts.get(sql, 0) + 1
         dup_key = (sql, params_hash)
-        if dup_key in duplicate_keys:
-            q["is_duplicate"] = True
-        else:
-            duplicate_keys.add(dup_key)
+        dup_key_counts[dup_key] = dup_key_counts.get(dup_key, 0) + 1
 
     # Similar = SQL template appears 2+ times (matches DDT semantics)
     similar_sqls = {sql for sql, count in sql_counts.items() if count > 1}
-
-    # Second pass: mark all queries in groups with 2+ members
-    dup_key_counts = {}
-    for q in queries:
-        dup_key = (q["sql"], q["params_hash"])
-        dup_key_counts[dup_key] = dup_key_counts.get(dup_key, 0) + 1
 
     duplicate_keys_final = {k for k, count in dup_key_counts.items() if count > 1}
 
@@ -70,6 +62,8 @@ def get_stats():
 
 
 def _hash_params(params):
+    if isinstance(params, Mapping):
+        params = tuple(sorted(params.items()))
     try:
         return hash(tuple(params)) if params else 0
     except TypeError:

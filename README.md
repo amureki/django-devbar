@@ -68,6 +68,10 @@ if DEBUG:
 
 This keeps the middleware active only in development and avoids import errors if the package isn't installed in production.
 
+If the middleware remains installed, `DEBUG=False` disables the HTML bar and detailed
+`DevBar-Data` header by default, but query collection and `Server-Timing` remain active.
+Use the conditional setup above to disable collection in production.
+
 ## Configuration
 
 All settings are optional. Configure via a `DEVBAR` dict in your Django settings:
@@ -78,15 +82,20 @@ DEVBAR = {
     "SHOW_BAR": None,  # follows DEBUG; set True/False to override
     "ENABLE_DEVTOOLS_DATA": None,  # follows DEBUG; set True/False to override
     "DEVTOOLS_HEADER_MAX_BYTES": 6144,  # max bytes for DevBar-Data header payload
-    "DEVTOOLS_MAX_QUERIES": None,  # optional hard cap for q/dup entries sent to DevTools
+    "DEVTOOLS_MAX_QUERIES": None,  # optional cap for query entries sent to DevTools
 }
 ```
+
+Header limits reduce data sent to DevTools, not query collection or its memory use.
 
 ## Response Headers
 
 Django DevBar adds HTTP response headers with performance metrics:
 
 - **Server-Timing** (always present) – Standard HTTP header with database, application, and total time metrics. Visible in browser DevTools Network tab under Timing.
+
+Timings and query counts exclude streaming body generation and queries executed
+while a streaming response is consumed.
 
 An additional header is included by default in DEBUG mode:
 
