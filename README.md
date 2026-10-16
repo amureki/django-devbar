@@ -1,10 +1,10 @@
 # django-devbar
 
-> [!WARNING]
-> This package is experimental and may introduce breaking changes in minor versions.
+A performance bar for Django development. Shows database query counts, query duration,
+and application time. Flags similar and duplicate queries.
 
-Lightweight performance devbar for Django.
-Shows DB query count, query duration, application time, and detects similar and duplicate queries with visual severity indicators.
+Settings and the response header format remain compatible within 1.x.
+Breaking changes require a new major version.
 
 [![Badge PyPI]][pypi]
 [![Badge Chrome]][chrome]
@@ -19,41 +19,42 @@ Shows DB query count, query duration, application time, and detects similar and 
 | Firefox DevTools extension | [Firefox Add-ons][firefox] | Optional                          |
 | Browser extension packages | [GitHub Releases]          | Manual/dev installs and checksums |
 
-## Showcase
+## Screenshots
 
-Normal operation – showing query count, duration, and application time:
+Query count, query duration, and application time:
 
 ![devbar example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example.svg)
 
-Similar and duplicate queries detected – severity indicators and details shown:
+Similar and duplicate queries with details:
 
 ![devbar warning example](https://github.com/amureki/django-devbar/raw/3c6118d4283c211a5d84510de52e1d5c3e5e46e4/docs/devbar-example-warning.svg)
 
-[optional] Browser extension (Chrome and Firefox) — showing detailed metrics in DevTools panel:
+The optional Chrome and Firefox extension shows query details in DevTools:
 
 [![Browser DevTools extension](https://github.com/user-attachments/assets/f53a4bb8-fba1-446c-8224-82eac47bd027)](#browser-extension)
 
 ## Motivation
 
-While [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/) is a proven tool trusted by countless projects, django-devbar explores a different approach to development debugging:
+django-devbar sends metrics in response headers and can display an HTML bar.
+Compared with [Django Debug Toolbar](https://django-debug-toolbar.readthedocs.io/):
 
-- **Minimal setup** — just add middleware, nothing else required
-- **Browser DevTools integration** — extension panel works with any response type, including JSON
-- **Zero extra dependencies** — only requires Django
-- **Lower overhead** — no extra requests to debug endpoints
-- **Non-intrusive** — HTML bar is optional; works via headers and DevTools panel alone
+- Setup requires one middleware entry.
+- The browser extension reads metrics from any response type, including JSON.
+- Django is the only dependency.
+- Metrics require no extra requests to debug endpoints.
+- The HTML bar is optional. You can use headers and the extension alone.
 
-## Django Setup
+## Django setup
 
 ```bash
-# Using uv (recommended)
+# Using uv
 uv add --dev django-devbar
 
 # Or using pip
 pip install django-devbar
 ```
 
-Add to your middleware early. For example:
+Place DevBar near the start of your middleware list:
 
 ```python
 MIDDLEWARE = [
@@ -66,7 +67,8 @@ if DEBUG:
     MIDDLEWARE.insert(idx + 1, "django_devbar.DevBarMiddleware")
 ```
 
-This keeps the middleware active only in development and avoids import errors if the package isn't installed in production.
+The `if DEBUG` condition keeps the middleware active only in development. It also
+avoids import errors when the package is not installed in production.
 
 If the middleware remains installed, `DEBUG=False` disables the HTML bar and detailed
 `DevBar-Data` header by default, but query collection and `Server-Timing` remain active.
@@ -74,7 +76,7 @@ Use the conditional setup above to disable collection in production.
 
 ## Configuration
 
-All settings are optional. Configure via a `DEVBAR` dict in your Django settings:
+All settings are optional. Set them in a `DEVBAR` dictionary in your Django settings:
 
 ```python
 DEVBAR = {
@@ -88,37 +90,31 @@ DEVBAR = {
 
 Header limits reduce data sent to DevTools, not query collection or its memory use.
 
-## Response Headers
+## Response headers
 
-Django DevBar adds HTTP response headers with performance metrics:
-
-- **Server-Timing** (always present) – Standard HTTP header with database, application, and total time metrics. Visible in browser DevTools Network tab under Timing.
-
-Timings and query counts exclude streaming body generation and queries executed
-while a streaming response is consumed.
-
-An additional header is included by default in DEBUG mode:
-
-- **DevBar-Data** - JSON header with comprehensive metrics including similar and duplicate query details
-  - Query-level flags are embedded in `q` entries (`dup` and `sim`)
-  - Payload is automatically truncated to fit `DEVTOOLS_HEADER_MAX_BYTES`
-  - When truncated, response includes metadata keys: `tr`, `q_total`, `q_sent`
-
-This is useful for:
-
-- **API endpoints** where the HTML overlay can't be displayed
-- **Automated testing** to assert performance metrics (e.g., fail CI if query count exceeds a limit)
-- **Browser extensions** that need detailed duplicate query information
-
-### Server-Timing format
+DevBar always adds `Server-Timing` with database, application, and total time.
+You can view it in the browser's Network tab under Timing:
 
 ```
 Server-Timing: db;dur=87.50, app;dur=41.30, total;dur=128.80
 ```
 
-## Browser Extension
+Timings and query counts exclude streaming body generation and queries executed
+while a streaming response is consumed.
 
-View Django DevBar metrics directly in browser DevTools. Install from [Chrome Web Store][chrome] or [Firefox Add-ons][firefox].
+With `DEBUG=True`, DevBar also adds a `DevBar-Data` JSON header by default:
+
+- The `q` entries contain query details, with `dup` and `sim` flags for duplicate and similar queries.
+- The payload is truncated to fit `DEVTOOLS_HEADER_MAX_BYTES`.
+- Truncated payloads include `tr`, `q_total`, and `q_sent` metadata.
+
+Use these headers to inspect API responses, read metrics in the browser extension,
+or check query counts in automated tests.
+
+## Browser extension
+
+Install the extension from [Chrome Web Store][chrome] or [Firefox Add-ons][firefox]
+to view metrics in DevTools.
 
 See [browser-extension/README.md](browser-extension/README.md) for more details.
 
